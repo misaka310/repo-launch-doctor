@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "repo-launch-doctor"
+version = "0.2.0"
+description = "Read-only checks for repository launchability and public readiness"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "misaka310" }]
+keywords = ["repository", "readiness", "documentation", "release", "cli"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Software Development :: Quality Assurance",
+]
+
+[project.scripts]
+repo-launch-doctor = "repo_launch_doctor.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["repo_launch_doctor*"]
