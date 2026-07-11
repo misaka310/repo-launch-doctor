@@ -1,0 +1,21 @@
+{
+  "project_type": "web",
+  "ignore_paths": [
+    "private/**"
+  ],
+  "ignore_checks": [],
+  "expected_ports": [
+    8717
+  ],
+  "expected_start_commands": [
+    "start.bat"
+  ],
+  "expected_health_endpoints": [
+    "/health"
+  ],
+  "accepted_generated_paths": [
+    "public/generated-demo/**"
+  ],
+  "max_files": 10000,
+  "max_file_bytes": 1000000
+}
