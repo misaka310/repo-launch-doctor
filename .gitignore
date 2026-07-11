@@ -9,6 +9,9 @@ build/
 dist/
 *.egg-info/
 reports/
+doctor-output/
 .repo-launch-doctor.json
 .env
 .env.*
+!.env.example
+!.env.sample

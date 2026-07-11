@@ -10,17 +10,35 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.11", "3.12", "3.13"]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+
       - name: Unit and end-to-end tests
         run: python -m unittest discover -s tests -v
+
       - name: Compile check
         run: python -m compileall repo_launch_doctor tests
+
+      - name: Install package and check CLI
+        run: |
+          python -m pip install .
+          repo-launch-doctor --version
+
       - name: Self scan
         run: python -m repo_launch_doctor scan . --output reports/self --fail-on high
+
+      - name: Windows launcher from another directory
+        if: runner.os == 'Windows'
+        shell: cmd
+        env:
+          CI: "1"
+        run: |
+          cd /d %TEMP%
+          call "%GITHUB_WORKSPACE%\run-doctor.bat" "%GITHUB_WORKSPACE%" none

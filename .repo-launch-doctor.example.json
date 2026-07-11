@@ -1,8 +1,6 @@
 {
   "project_type": "web",
-  "ignore_paths": [
-    "private/**"
-  ],
+  "ignore_paths": [],
   "ignore_checks": [],
   "expected_ports": [
     8717
@@ -17,5 +15,6 @@
     "public/generated-demo/**"
   ],
   "max_files": 10000,
+  "max_paths": 100000,
   "max_file_bytes": 1000000
 }

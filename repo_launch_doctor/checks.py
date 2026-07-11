@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections import Counter
 from pathlib import Path
 from urllib.parse import unquote
 
@@ -16,6 +17,11 @@ PORT_PATTERNS = (
     re.compile(r"\blisten\s*\(\s*(?P<port>\d{2,5})", re.IGNORECASE),
 )
 HEALTH_RE = re.compile(r"[\"'`](?P<endpoint>/(?:api/)?(?:health|status))[\"'`]", re.IGNORECASE)
+FAVICON_DECLARATION_RE = re.compile(
+    r"<link\b(?=[^>]*\brel\s*=\s*[\"'][^\"']*icon[^\"']*[\"'])[^>]*>",
+    re.IGNORECASE,
+)
+HREF_RE = re.compile(r"\bhref\s*=\s*[\"']([^\"']+)[\"']", re.IGNORECASE)
 README_NAMES = ("README.md", "README.MD", "readme.md", "README.txt")
 START_FILE_NAMES = {
     "start.bat",
@@ -32,6 +38,8 @@ START_FILE_NAMES = {
 }
 SECRET_FILE_NAMES = {
     ".env",
+    ".npmrc",
+    ".pypirc",
     "cookies.txt",
     "credentials.json",
     "firebase-config.js",
@@ -39,21 +47,40 @@ SECRET_FILE_NAMES = {
     "id_ed25519",
     "secrets.json",
     "config.local.json",
+    "service-account.json",
 }
 GENERATED_SEGMENTS = {
     "__pycache__",
     ".pytest_cache",
     ".mypy_cache",
     ".ruff_cache",
+    ".tox",
+    ".nox",
+    ".next",
+    ".nuxt",
+    ".svelte-kit",
     "node_modules",
+    "vendor",
     "venv",
     ".venv",
     "logs",
+    "reports",
+    "doctor-output",
     "dist",
     "build",
     "coverage",
+    "htmlcov",
 }
 GENERATED_SUFFIXES = {".log", ".tmp", ".dump", ".pyc"}
+RUNTIME_EXCLUDED_PREFIXES = (
+    ".github/",
+    "docs/",
+    "examples/",
+    "fixtures/",
+    "reports/",
+    "test/",
+    "tests/",
+)
 
 
 def _finding(
@@ -69,11 +96,26 @@ def _finding(
 
 def _readable_texts(inventory: Inventory) -> dict[str, str]:
     texts: dict[str, str] = {}
-    for path in inventory.files:
+    for path in inventory.readable_files:
         text = inventory.read_text(path)
         if text is not None:
             texts[inventory.relative(path)] = text
     return texts
+
+
+def _runtime_texts(texts: dict[str, str]) -> dict[str, str]:
+    runtime: dict[str, str] = {}
+    for path, text in texts.items():
+        lowered = path.casefold()
+        name = Path(path).name.casefold()
+        if lowered.startswith(RUNTIME_EXCLUDED_PREFIXES):
+            continue
+        if name.startswith("readme"):
+            continue
+        if "example" in name or "sample" in name or "template" in name:
+            continue
+        runtime[path] = text
+    return runtime
 
 
 def _find_readme(texts: dict[str, str]) -> tuple[str, str] | None:
@@ -96,7 +138,7 @@ def _check_readme(texts: dict[str, str]) -> list[Finding]:
                 "README is missing",
                 "README.md",
                 "No README file was found.",
-                "Add a README that explains the purpose, requirements, setup, usage, verification, and limitations.",
+                "Add a README that explains purpose, requirements, setup, usage, verification, and limitations.",
             )
         ]
 
@@ -148,7 +190,11 @@ def _check_markdown_links(inventory: Inventory, texts: dict[str, str]) -> list[F
             target = _markdown_link_target(raw_target)
             if not target:
                 continue
-            candidate = (inventory.root / target.lstrip("/")) if target.startswith("/") else (source.parent / target)
+            candidate = (
+                inventory.root / target.lstrip("/")
+                if target.startswith("/")
+                else source.parent / target
+            )
             try:
                 resolved = candidate.resolve(strict=False)
                 resolved.relative_to(inventory.root)
@@ -189,10 +235,12 @@ def _load_package_scripts(texts: dict[str, str]) -> dict[str, str]:
     scripts = data.get("scripts", {}) if isinstance(data, dict) else {}
     if not isinstance(scripts, dict):
         return {}
-    return {str(key): str(value) for key, value in scripts.items() if isinstance(value, str)}
+    return {str(key): value for key, value in scripts.items() if isinstance(value, str)}
 
 
-def _detect_start_commands(texts: dict[str, str], scripts: dict[str, str]) -> list[str]:
+def _detect_start_commands(
+    texts: dict[str, str], scripts: dict[str, str], config: DoctorConfig
+) -> list[str]:
     commands: list[str] = []
     for relative in texts:
         name = Path(relative).name.casefold()
@@ -205,18 +253,34 @@ def _detect_start_commands(texts: dict[str, str], scripts: dict[str, str]) -> li
     for name in ("start", "dev", "serve"):
         if name in scripts:
             commands.append("npm start" if name == "start" else f"npm run {name}")
+    if config.project_type == "static-web" and "index.html" in texts:
+        commands.append("open index.html")
     return sorted(set(commands))
 
 
-def _detect_verification_commands(scripts: dict[str, str], texts: dict[str, str]) -> list[str]:
+def _detect_verification_commands(
+    scripts: dict[str, str], texts: dict[str, str]
+) -> list[str]:
     commands: list[str] = []
     for name in ("test", "lint", "typecheck", "build", "check", "validate"):
         if name in scripts:
             commands.append("npm test" if name == "test" else f"npm run {name}")
-    if "pyproject.toml" in texts or "pytest.ini" in texts:
-        commands.append("python -m pytest")
-    if any(path.startswith("tests/") and path.endswith(".py") for path in texts):
+
+    has_python_tests = any(
+        path.startswith("tests/") and path.endswith(".py") for path in texts
+    )
+    if has_python_tests:
         commands.append("python -m unittest discover -s tests")
+
+    pyproject = texts.get("pyproject.toml", "")
+    pytest_declared = (
+        "pytest.ini" in texts
+        or "conftest.py" in texts
+        or "[tool.pytest" in pyproject.casefold()
+        or re.search(r"\bpytest\b", pyproject, re.IGNORECASE) is not None
+    )
+    if pytest_declared:
+        commands.append("python -m pytest")
     return sorted(set(commands))
 
 
@@ -243,7 +307,9 @@ def _detect_health_endpoints(texts: dict[str, str]) -> list[str]:
 
 
 def _check_entrypoints(
-    texts: dict[str, str], config: DoctorConfig, start_commands: list[str]
+    texts: dict[str, str],
+    config: DoctorConfig,
+    start_commands: list[str],
 ) -> list[Finding]:
     findings: list[Finding] = []
     if not start_commands and config.project_type not in {"library", "docs"}:
@@ -273,78 +339,186 @@ def _check_entrypoints(
     return findings
 
 
+def _is_sensitive_path(relative: str) -> bool:
+    path = Path(relative)
+    name = path.name.casefold()
+    safe_env_example = bool(
+        re.fullmatch(r"\.env(?:\.[a-z0-9_-]+)*\.(?:example|sample|template)", name)
+    )
+    if safe_env_example:
+        return False
+    if name in SECRET_FILE_NAMES or name.startswith(".env."):
+        return True
+    if path.suffix.casefold() in {".pem", ".key", ".pfx", ".p12", ".kdbx"}:
+        return True
+    lowered = relative.casefold()
+    return lowered.endswith("/.aws/credentials") or lowered == ".aws/credentials"
+
+
 def _check_secret_risk(inventory: Inventory) -> list[Finding]:
     findings: list[Finding] = []
-    for path in inventory.files:
-        relative = inventory.relative(path)
-        name = path.name.casefold()
-        safe_env_example = bool(
-            re.fullmatch(r"\.env(?:\.[a-z0-9_-]+)*\.(?:example|sample|template)", name)
-        )
-        risky = not safe_env_example and (
-            name in SECRET_FILE_NAMES
-            or name.startswith(".env.")
-            or path.suffix.casefold() in {".pem", ".key", ".pfx", ".p12"}
-        )
-        if not risky:
+    for relative in sorted(inventory.all_file_paths):
+        if not _is_sensitive_path(relative):
             continue
         tracked = inventory.tracked_files is not None and relative in inventory.tracked_files
+        git_ignored = (
+            inventory.git_ignored_paths is not None
+            and relative in inventory.git_ignored_paths
+        )
+        if not tracked and git_ignored:
+            continue
+        severity = "BLOCKER" if tracked else "HIGH"
+        state = (
+            "tracked by Git"
+            if tracked
+            else "present and not confirmed as ignored by Git"
+        )
         findings.append(
             _finding(
                 "secret-risk-file",
-                "BLOCKER" if tracked else "HIGH",
+                severity,
                 "Sensitive-looking file may be publishable",
                 relative,
-                "A sensitive-looking filename is present. Its contents were not included in the report.",
-                "Remove it from version control, rotate exposed credentials if needed, and provide a safe example file.",
+                f"A sensitive-looking filename is {state}. Its contents were not read into the report.",
+                "Remove it from version control, rotate exposed credentials if needed, and keep only a placeholder example.",
             )
         )
     return findings
 
 
-def _check_generated_artifacts(inventory: Inventory, config: DoctorConfig) -> list[Finding]:
+def _generated_root(relative: str) -> str | None:
+    parts = Path(relative).parts
+    for index, part in enumerate(parts):
+        if part.casefold() in GENERATED_SEGMENTS:
+            return Path(*parts[: index + 1]).as_posix()
+    if Path(relative).suffix.casefold() in GENERATED_SUFFIXES:
+        return relative
+    return None
+
+
+def _check_generated_artifacts(
+    inventory: Inventory, config: DoctorConfig
+) -> list[Finding]:
     findings: list[Finding] = []
-    for path in inventory.files:
-        relative = inventory.relative(path)
-        if path_matches(relative, config.accepted_generated_paths):
-            continue
-        parts = {part.casefold() for part in Path(relative).parts}
-        generated = bool(parts & GENERATED_SEGMENTS) or path.suffix.casefold() in GENERATED_SUFFIXES
-        if not generated:
-            continue
-        tracked = inventory.tracked_files is not None and relative in inventory.tracked_files
-        if tracked or inventory.tracked_files is None:
+
+    def accepted(path: str) -> bool:
+        return path_matches(path, config.accepted_generated_paths)
+
+    if inventory.tracked_files is not None:
+        tracked_roots = Counter(
+            root
+            for relative in inventory.tracked_files
+            if not accepted(relative)
+            for root in [_generated_root(relative)]
+            if root is not None
+        )
+        for path, count in sorted(tracked_roots.items()):
+            findings.append(
+                _finding(
+                    "generated-artifact-present",
+                    "MEDIUM",
+                    "Generated or local artifact is tracked",
+                    path,
+                    f"Git tracks {count} generated/cache/log path(s) under this location.",
+                    "Remove the paths from Git and add an ignore rule, or explicitly allow intentional generated assets.",
+                )
+            )
+
+        ignored = inventory.git_ignored_paths or frozenset()
+        tracked_root_names = set(tracked_roots)
+        untracked_roots = Counter(
+            root
+            for relative in (*inventory.present_directories, *inventory.present_files)
+            if relative not in inventory.tracked_files
+            and relative not in ignored
+            and not accepted(relative)
+            for root in [_generated_root(relative)]
+            if root is not None and root not in tracked_root_names
+        )
+        for path, count in sorted(untracked_roots.items()):
+            findings.append(
+                _finding(
+                    "generated-artifact-present",
+                    "LOW",
+                    "Generated or local artifact is not ignored",
+                    path,
+                    f"{count} generated/cache/log path(s) are untracked but not confirmed as ignored.",
+                    "Add an ignore rule or explicitly allow the path when it is intentionally shareable.",
+                )
+            )
+    else:
+        roots: Counter[str] = Counter()
+        ignored = inventory.git_ignored_paths or frozenset()
+        for relative in inventory.present_directories:
+            root = _generated_root(relative)
+            if root and relative not in ignored and not accepted(relative):
+                roots[root] += 1
+        for relative in inventory.present_files:
+            root = _generated_root(relative)
+            if root and relative not in ignored and not accepted(relative):
+                roots[root] += 1
+        for path, count in sorted(roots.items()):
             findings.append(
                 _finding(
                     "generated-artifact-present",
                     "MEDIUM",
                     "Generated or local artifact is present",
-                    relative,
-                    "The path resembles a log, cache, dependency tree, build output, or local runtime artifact.",
-                    "Ignore it, remove it from Git, or declare the path in accepted_generated_paths when intentional.",
+                    path,
+                    f"{count} generated/cache/log path signal(s) were found, and Git tracking status was unavailable.",
+                    "Check Git status, ignore local artifacts, or explicitly allow intentional generated assets.",
                 )
             )
     return findings
 
 
-def _is_web_project(texts: dict[str, str], config: DoctorConfig) -> bool:
+def _is_web_project(
+    texts: dict[str, str], all_paths: frozenset[str], config: DoctorConfig
+) -> bool:
     if config.project_type in {"web", "static-web"}:
         return True
     if config.project_type in {"desktop", "cli", "library", "docs"}:
         return False
-    return "index.html" in texts or any(path.endswith("/index.html") for path in texts)
+    return "index.html" in all_paths or any(path.endswith("/index.html") for path in all_paths)
+
+
+def _has_valid_favicon(
+    texts: dict[str, str], all_paths: frozenset[str]
+) -> bool:
+    for html_path, text in texts.items():
+        if not html_path.casefold().endswith(".html"):
+            continue
+        for tag_match in FAVICON_DECLARATION_RE.finditer(text):
+            href_match = HREF_RE.search(tag_match.group(0))
+            if href_match is None:
+                continue
+            href = unquote(
+                href_match.group(1).split("#", 1)[0].split("?", 1)[0]
+            ).strip()
+            if not href or href.startswith(("http://", "https://", "data:")):
+                continue
+            if href.startswith("/"):
+                target = href.lstrip("/")
+            else:
+                target = (Path(html_path).parent / href).as_posix()
+            normalized = target.replace("\\", "/")
+            while normalized.startswith("./"):
+                normalized = normalized[2:]
+            normalized = normalized.lstrip("/")
+            if normalized in all_paths:
+                return True
+    return False
 
 
 def _check_web_features(
-    texts: dict[str, str], config: DoctorConfig, health_endpoints: list[str]
+    inventory: Inventory,
+    texts: dict[str, str],
+    config: DoctorConfig,
+    health_endpoints: list[str],
 ) -> list[Finding]:
-    if not _is_web_project(texts, config):
+    if not _is_web_project(texts, inventory.all_file_paths, config):
         return []
     findings: list[Finding] = []
-    favicon_files = [path for path in texts if Path(path).name.casefold().startswith("favicon.")]
-    html_text = "\n".join(text for path, text in texts.items() if path.endswith(".html"))
-    has_declaration = re.search(r"<link[^>]+rel=[\"'][^\"']*icon", html_text, re.IGNORECASE)
-    if not favicon_files or not has_declaration:
+    if not _has_valid_favicon(texts, inventory.all_file_paths):
         findings.append(
             _finding(
                 "missing-favicon",
@@ -362,16 +536,29 @@ def _check_web_features(
                 "MEDIUM",
                 "No health endpoint was detected",
                 ".",
-                "No /health or /status route was found in readable source or documentation.",
+                "No /health or /status route was found in runtime source.",
                 "Expose a lightweight local health endpoint and document the expected response.",
             )
         )
     return findings
 
 
-def _check_public_docs(texts: dict[str, str]) -> list[Finding]:
+def _needs_config_example(all_paths: frozenset[str], texts: dict[str, str]) -> bool:
+    names = {Path(path).name.casefold() for path in all_paths}
+    if any(name in SECRET_FILE_NAMES or name.startswith(".env") for name in names):
+        return True
+    runtime = _runtime_texts(texts)
+    return any(
+        re.search(r"\b(?:config|settings|environment variables?|env vars?)\b", text, re.IGNORECASE)
+        for text in runtime.values()
+    )
+
+
+def _check_public_docs(
+    inventory: Inventory, texts: dict[str, str]
+) -> list[Finding]:
     findings: list[Finding] = []
-    names = {Path(path).name.casefold() for path in texts}
+    names = {Path(path).name.casefold() for path in inventory.all_file_paths}
     if not any(name.startswith("license") for name in names):
         findings.append(
             _finding(
@@ -391,23 +578,24 @@ def _check_public_docs(texts: dict[str, str]) -> list[Finding]:
                 "Security guidance is missing",
                 "SECURITY.md",
                 "No SECURITY.md file was detected.",
-                "Document secret handling, local-network exposure, and vulnerability reporting where relevant.",
+                "Document secret handling and vulnerability reporting where relevant.",
             )
         )
     example_files = [
         path
-        for path in texts
-        if "example" in Path(path).name.casefold() or Path(path).name.casefold().endswith(".sample.json")
+        for path in inventory.all_file_paths
+        if "example" in Path(path).name.casefold()
+        or Path(path).name.casefold().endswith(".sample.json")
     ]
-    if not example_files:
+    if _needs_config_example(inventory.all_file_paths, texts) and not example_files:
         findings.append(
             _finding(
                 "missing-config-example",
                 "LOW",
                 "No safe configuration example was detected",
                 ".",
-                "No example or sample configuration file was found.",
-                "Add a placeholder-only example when the project requires local configuration.",
+                "The project appears to use local configuration, but no example file was found.",
+                "Add a placeholder-only example without real credentials or account data.",
             )
         )
     return findings
@@ -425,7 +613,7 @@ def _check_expected_capabilities(
                     "MEDIUM",
                     "Configured port was not detected",
                     ".repo-launch-doctor.json",
-                    f"Expected port {port} was not found in readable files.",
+                    f"Expected port {port} was not found in runtime source.",
                     "Document or implement the port, or update the doctor configuration.",
                 )
             )
@@ -437,29 +625,74 @@ def _check_expected_capabilities(
                     "MEDIUM",
                     "Configured health endpoint was not detected",
                     ".repo-launch-doctor.json",
-                    f"Expected endpoint '{endpoint}' was not found in readable files.",
+                    f"Expected endpoint '{endpoint}' was not found in runtime source.",
                     "Implement and document the endpoint, or update the doctor configuration.",
                 )
             )
     return findings
 
 
-def run_checks(inventory: Inventory, config: DoctorConfig) -> tuple[list[Finding], dict[str, object]]:
+def _check_scan_completeness(inventory: Inventory) -> list[Finding]:
+    if inventory.scan_complete:
+        return []
+    return [
+        _finding(
+            "scan-incomplete",
+            "BLOCKER",
+            "Repository scan was incomplete",
+            ".",
+            " ".join(inventory.incomplete_reasons),
+            "Increase the configured limits or resolve unreadable paths, then run the scan again. Do not use a partial report for a release decision.",
+        )
+    ]
+
+
+def _detected_project_type(
+    texts: dict[str, str], inventory: Inventory, config: DoctorConfig
+) -> str:
+    if config.project_type != "auto":
+        return config.project_type
+    if _is_web_project(texts, inventory.all_file_paths, config):
+        return "web"
+    if "pyproject.toml" in texts and (
+        "[project.scripts]" in texts["pyproject.toml"]
+        or "repo_launch_doctor/__main__.py" in inventory.all_file_paths
+    ):
+        return "cli"
+    return "auto"
+
+
+def run_checks(
+    inventory: Inventory, config: DoctorConfig
+) -> tuple[list[Finding], dict[str, object]]:
     texts = _readable_texts(inventory)
+    runtime_texts = _runtime_texts(texts)
     scripts = _load_package_scripts(texts)
-    start_commands = _detect_start_commands(texts, scripts)
+    start_commands = _detect_start_commands(texts, scripts, config)
     verification_commands = _detect_verification_commands(scripts, texts)
-    ports = _detect_ports(texts)
-    health_endpoints = _detect_health_endpoints(texts)
+    web_project = _is_web_project(texts, inventory.all_file_paths, config)
+    ports = (
+        _detect_ports(runtime_texts)
+        if web_project or config.expected_ports
+        else []
+    )
+    health_endpoints = (
+        _detect_health_endpoints(runtime_texts)
+        if web_project or config.expected_health_endpoints
+        else []
+    )
 
     checks = (
+        lambda: _check_scan_completeness(inventory),
         lambda: _check_readme(texts),
         lambda: _check_markdown_links(inventory, texts),
         lambda: _check_entrypoints(texts, config, start_commands),
         lambda: _check_secret_risk(inventory),
         lambda: _check_generated_artifacts(inventory, config),
-        lambda: _check_web_features(texts, config, health_endpoints),
-        lambda: _check_public_docs(texts),
+        lambda: _check_web_features(
+            inventory, texts, config, health_endpoints
+        ),
+        lambda: _check_public_docs(inventory, texts),
         lambda: _check_expected_capabilities(config, ports, health_endpoints),
     )
 
@@ -467,7 +700,7 @@ def run_checks(inventory: Inventory, config: DoctorConfig) -> tuple[list[Finding
     for index, check in enumerate(checks, start=1):
         try:
             findings.extend(check())
-        except Exception as exc:  # keep one broken check from hiding all other results
+        except Exception as exc:  # one broken check must not hide all other results
             findings.append(
                 _finding(
                     "internal-check-error",
@@ -475,24 +708,32 @@ def run_checks(inventory: Inventory, config: DoctorConfig) -> tuple[list[Finding
                     "A doctor check could not complete",
                     ".",
                     f"Check {index} failed with {type(exc).__name__}.",
-                    "Run the doctor with a minimal reproduction and report the failure.",
+                    "Run the doctor with a minimal synthetic reproduction and report the failure.",
                 )
             )
 
     ignored = set(config.ignore_checks)
+    suppressed = [finding for finding in findings if finding.check_id in ignored]
     findings = [finding for finding in findings if finding.check_id not in ignored]
 
+    suppressed_counts = dict(
+        sorted(Counter(finding.check_id for finding in suppressed).items())
+    )
     metadata: dict[str, object] = {
-        "project_type": (
-            config.project_type
-            if config.project_type != "auto"
-            else ("web" if _is_web_project(texts, config) else "auto")
-        ),
+        "project_type": _detected_project_type(texts, inventory, config),
         "start_commands": start_commands,
         "verification_commands": verification_commands,
         "ports": ports,
         "health_endpoints": health_endpoints,
         "git_tracked_file_detection": inventory.tracked_files is not None,
-        "skipped_files": inventory.skipped_files,
+        "git_ignore_detection": inventory.git_ignored_paths is not None,
+        "ignore_detection_source": inventory.ignore_detection_source,
+        "scan_complete": inventory.scan_complete,
+        "incomplete_reasons": list(inventory.incomplete_reasons),
+        "scan_errors": list(inventory.scan_errors),
+        "skipped_reasons": inventory.skipped_reasons,
+        "ignored_paths": list(config.ignore_paths),
+        "ignored_checks": list(config.ignore_checks),
+        "suppressed_findings": suppressed_counts,
     }
     return findings, metadata

@@ -1,23 +1,25 @@
-# Security Policy
+# セキュリティポリシー
 
-## Supported versions
+## サポート対象
 
-The latest version on the default branch is supported.
+既定ブランチの最新版をサポートします。
 
-## Reporting a vulnerability
+## 脆弱性の報告
 
-Use GitHub private vulnerability reporting when it is enabled for the repository. Do not include live credentials, private keys, session cookies, personal data, or private repository contents in a public issue.
+リポジトリでGitHub Private Vulnerability Reportingが有効な場合は、公開Issueではなくそちらを使用してください。実際の認証情報、秘密鍵、セッションCookie、個人情報、非公開リポジトリの内容を公開Issueへ載せないでください。
 
-Include:
+報告には次を含めてください。
 
-- affected version or commit;
-- operating system and Python version;
-- minimal reproduction using synthetic data;
-- expected and actual behavior;
-- whether a report exposed content that should have remained redacted.
+- 影響するバージョンまたはcommit
+- OSとPythonのバージョン
+- 合成データだけを使った最小再現
+- 期待した結果と実際の結果
+- 本来伏せるべき内容がレポートへ出たか
 
-## Safety boundaries
+## 安全性の境界
 
-Repo Launch Doctor performs static, read-only inspection. It does not execute commands found in the target repository. It may call `git ls-files` to determine whether a risky path is tracked.
+Repo Launch Doctorは、上限を設けた静的・読み取り専用の検査を行います。対象リポジトリに書かれたコマンドは実行しません。Git追跡状態とignore状態の確認に `git ls-files` と `git check-ignore` を使用する場合があります。
 
-The doctor reports suspicious filenames but does not place file contents in generated reports. Users must still review the target repository and its Git history before publishing.
+秘密情報らしいファイルの内容は生成レポートへコピーしません。Git履歴は検査せず、専用のシークレットスキャナーやセキュリティ監査の代替ではありません。
+
+`INCOMPLETE` のレポートを「公開して安全」という根拠に使用しないでください。

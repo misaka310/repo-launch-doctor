@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from typing import Sequence
 
-from .models import SEVERITY_ORDER
+from .constants import PACKAGE_VERSION, SEVERITY_ORDER
 from .scanner import scan_repository
 
 
@@ -13,6 +13,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="repo-launch-doctor",
         description="Check whether a repository is easy to start and safe to publish.",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {PACKAGE_VERSION}",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
     scan = subparsers.add_parser("scan", help="Scan one local repository")
@@ -27,6 +32,11 @@ def build_parser() -> argparse.ArgumentParser:
         choices=("none", "blocker", "high", "medium"),
         default="blocker",
         help="Return exit code 1 when this severity or worse is present",
+    )
+    scan.add_argument(
+        "--include-absolute-path",
+        action="store_true",
+        help="Include the absolute repository path in generated reports (off by default for safe sharing)",
     )
     return parser
 
@@ -47,18 +57,31 @@ def main(argv: Sequence[str] | None = None) -> int:
         output = Path(args.output).expanduser()
         if not output.is_absolute():
             output = Path.cwd() / output
-        report = scan_repository(root, output_directory=output)
+        report = scan_repository(
+            root,
+            output_directory=output,
+            include_absolute_path=args.include_absolute_path,
+        )
     except (OSError, ValueError) as exc:
         print(f"Repo Launch Doctor could not complete: {exc}", file=sys.stderr)
         return 2
 
-    print(f"Repository: {report.root}")
-    print(f"Score: {report.score}/100")
+    score = "N/A" if report.score is None else f"{report.score}/100"
+    print(f"Repository: {root}")
+    print(f"Verdict: {report.verdict}")
+    print(f"Score: {score}")
     print(
         "Findings: "
         + ", ".join(f"{severity}={count}" for severity, count in report.counts.items())
     )
     print(f"Reports: {output.resolve()}")
+
+    if not report.is_complete:
+        print(
+            "The scan was incomplete. Resolve the coverage problem before using this report for release decisions.",
+            file=sys.stderr,
+        )
+        return 2
 
     severities = [finding.severity for finding in report.findings]
     return 1 if _should_fail(severities, args.fail_on) else 0

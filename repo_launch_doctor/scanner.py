@@ -13,15 +13,22 @@ from .reporters import write_reports
 def scan_repository(
     root: Path | str,
     output_directory: Path | str | None = None,
+    *,
+    include_absolute_path: bool = False,
 ) -> ScanReport:
     root_path = Path(root).expanduser().resolve()
     config = load_config(root_path)
     inventory = collect_inventory(root_path, config)
     findings, metadata = run_checks(inventory, config)
+    repository_label = str(root_path) if include_absolute_path else (root_path.name or ".")
     report = ScanReport(
-        root=str(root_path),
-        generated_at=datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
-        files_scanned=len(inventory.files),
+        repository=repository_label,
+        generated_at=datetime.now(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z"),
+        files_scanned=len(inventory.readable_files),
+        paths_discovered=len(inventory.all_file_paths),
         findings=findings,
         metadata=metadata,
     )

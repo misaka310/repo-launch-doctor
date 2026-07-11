@@ -1,50 +1,40 @@
 # Repo Launch Doctor
 
-ローカルリポジトリを読み取り専用で検査し、**起動しやすさ・検証可能性・公開前の危険**をまとめるPython CLIです。
+公開前のローカルリポジトリを**読み取り専用**で確認し、初見ユーザーが起動できるか、ドキュメントと実装が噛み合っているか、公開してはいけないファイルが混ざっていないかをレポートするPython CLIです。
 
-READMEが初見ユーザーに通じるか、起動入口があるか、リンク切れや秘密情報らしいファイル、ログ・キャッシュの混入、Webアプリのfaviconやhealth endpoint不足などを確認し、JSON・Markdown・HTMLで改善案を出します。
+対象リポジトリに書かれたコマンドは実行しません。検査結果は、共有しやすいJSON・Markdown・HTMLで保存します。
 
-## 主な機能
+## こんなときに使います
 
-- READMEの要件、セットアップ、使い方、検証、制限事項を確認
-- ルートのBAT/PowerShell/Python起動入口と`package.json` scriptsを検出
-- Markdown内のローカルリンク・画像リンク切れを検出
-- `.env`、秘密鍵、Cookie、ローカル設定などの危険なファイル名を検出
-- ログ、キャッシュ、仮想環境、依存ツリー、build成果物の混入を検出
-- Webアプリのfavicon宣言・実ファイルと`/health`・`/status`を確認
-- ポート、起動コマンド、test・lint・typecheck・buildコマンドを一覧化
-- 秘密値の内容はレポートへ出さず、該当パスと対処だけを表示
-- 対象リポのスクリプトやコマンドは実行しない
+- GitHubで公開する前に、README・LICENSE・SECURITY・設定例を確認したい
+- clone後の起動入口やテスト入口が見つけやすいか確認したい
+- `.env`、秘密鍵、Cookie、ローカル設定が追跡されていないか確認したい
+- `build/`、ログ、キャッシュ、仮想環境などがGitへ混入していないか確認したい
+- Markdownの画像・相対リンク切れを確認したい
+- Webアプリのfaviconやhealth endpoint不足を確認したい
 
 ## 必要環境
 
 - Python 3.11以上
-- Gitは任意。利用できる場合だけ`git ls-files`で追跡済みファイルを判定します
+- Gitは任意です。利用できる場合は追跡済み・ignore済みを正確に区別し、GitリポジトリでないZIP展開先では `.gitignore` の一般的な規則を補助的に使用します
 - Windows、Linux、macOS
 
-外部Pythonパッケージは不要です。
+外部Pythonパッケージは不要です。Windows・Ubuntu・macOS上のPython 3.11〜3.13をCI対象にしています。
 
-## セットアップ
+## 最短利用
 
-リポジトリをcloneまたはZIP展開したら、そのフォルダで実行できます。インストールせずに使う場合は次の形式です。
+### Windows
 
-```powershell
-python -m repo_launch_doctor scan C:\path\to\target-repo --output reports\target
-```
-
-CLIとしてインストールする場合は次です。
-
-```powershell
-python -m pip install -e .
-repo-launch-doctor scan C:\path\to\target-repo --output reports\target
-```
-
-## Windowsでの最短利用
-
-`run-doctor.bat`へ検査したいフォルダを渡します。
+cloneまたはZIP展開後、検査対象フォルダを渡します。コマンド操作が不要な場合は、検査したいフォルダを `run-doctor.bat` へドラッグ＆ドロップしても実行できます。
 
 ```bat
 run-doctor.bat C:\path\to\target-repo
+```
+
+処理後、時刻付きフォルダへレポートを保存し、HTMLを開きます。
+
+```text
+reports/<repo-name>-<timestamp>/report.html
 ```
 
 引数を省略するとRepo Launch Doctor自身を検査します。
@@ -53,113 +43,171 @@ run-doctor.bat C:\path\to\target-repo
 run-doctor.bat
 ```
 
-処理後に次のHTMLレポートを開きます。
+既定では`HIGH`以上を検出すると終了コード1になります。第2引数で変更できます。
 
-```text
-reports/repo-launch-doctor/report.html
+```bat
+run-doctor.bat C:\path\to\target-repo none
+run-doctor.bat C:\path\to\target-repo blocker
+run-doctor.bat C:\path\to\target-repo medium
 ```
 
-## 使い方
+### Windows・Linux・macOS共通
 
-基本コマンドは次です。
+インストールせず、clone先から実行できます。
 
-```powershell
-python -m repo_launch_doctor scan <対象フォルダ> --output <出力先> --fail-on <基準>
+```bash
+python -m repo_launch_doctor scan /path/to/target-repo --output reports/target --fail-on high
 ```
 
-`--fail-on`は終了コード1にする基準です。
+CLIとしてインストールする場合:
 
-| 値 | 動作 |
+```bash
+python -m pip install .
+repo-launch-doctor scan /path/to/target-repo --output reports/target --fail-on high
+```
+
+バージョン確認:
+
+```bash
+repo-launch-doctor --version
+```
+
+## 判定の読み方
+
+| 判定 | 意味 |
 |---|---|
-| `none` | 検出結果に関係なく正常終了。ローカル確認向け |
-| `blocker` | BLOCKERがあれば終了コード1。既定値 |
-| `high` | HIGH以上があれば終了コード1 |
-| `medium` | MEDIUM以上があれば終了コード1 |
+| `PASS` | 指摘事項なし |
+| `PASS_WITH_NOTES` | 公開を止める問題はないが、改善点あり |
+| `FAIL` | `BLOCKER`または`HIGH`があり、公開前に修正が必要 |
+| `INCOMPLETE` | 上限到達や読取エラーにより検査未完了。公開判断には使わない |
 
-CIで公開前チェックとして使う例です。
-
-```powershell
-python -m repo_launch_doctor scan . --output reports/ci --fail-on high
-```
-
-## 出力
-
-出力先には同じ内容を用途別に保存します。
-
-```text
-report.json   CI、集計、別ツール連携用
-report.md     GitHub Issueやレビューへの貼り付け用
-report.html   人が確認するダッシュボード
-```
+`INCOMPLETE`ではスコアを表示しません。`--fail-on none`を指定しても終了コード2になります。
 
 重要度は次の意味です。
 
 | 重要度 | 意味 |
 |---|---|
-| BLOCKER | 公開前に止めるべき秘密情報リスクなど |
-| HIGH | 起動不能や重大なドキュメント不整合につながる問題 |
-| MEDIUM | 検証、保守、通常利用を弱くする問題 |
-| LOW | 公開品質や分かりやすさの改善点 |
-| INFO | 検出した機能やコマンド |
+| `BLOCKER` | Git追跡済み秘密情報候補や、検査未完了など公開判断を止める問題 |
+| `HIGH` | 起動不能、READMEの重大不足、リンク切れ、未保護の秘密情報候補 |
+| `MEDIUM` | 検証・保守・公開品質を弱くする問題 |
+| `LOW` | 分かりやすさや事故防止の改善点 |
+| `INFO` | 情報 |
 
-スコアは比較用の目安です。点数だけで公開可否を判断せず、個別のFindingを確認してください。
+点数だけではなく、個別のFindingと`scan_complete`を確認してください。
+
+## 出力
+
+```text
+report.json   CI、集計、別ツール連携用
+report.md     GitHub Issueやレビューへの貼り付け用
+report.html   人が確認する折り畳み式レポート
+```
+
+実際の自己診断レポート:
+
+![Repo Launch DoctorのPASSレポート](docs/report-preview.png)
+
+共有時の個人情報漏えいを避けるため、レポートには既定で対象リポジトリ名だけを記録します。絶対パスが必要なローカル調査では、明示的に次を付けます。
+
+```bash
+repo-launch-doctor scan . --include-absolute-path
+```
+
+JSONには`schema_version`が含まれます。現在のスキーマは`1.0`です。
+
+## 実際に確認するもの
+
+- READMEの要件、セットアップ、使い方、検証、制限事項
+- ルートのBAT・CMD・PowerShell・Python起動入口と`package.json` scripts
+- Markdown内の相対リンク・画像リンク
+- Git追跡済み、未追跡、Git ignore済みの秘密情報らしいファイル名
+- Git追跡済みのログ、キャッシュ、依存ツリー、仮想環境、build成果物
+- Webアプリのfavicon宣言と実ファイル
+- 動的Webアプリの`/health`・`/status`
+- 実行コード内のポートとhealth endpoint
+- 実在するtest・lint・typecheck・buildコマンド
+- LICENSE、SECURITY、必要な設定例
+- 検査範囲、読み飛ばした理由、抑制したFinding、上限到達
+
+ポートやhealth endpointの検出では、`tests/`、`docs/`、`examples/`、`reports/`のサンプル値を実機能として数えません。
 
 ## プロジェクト別設定
 
-対象リポ直下に`.repo-launch-doctor.json`を置くと、期待値や例外を設定できます。[設定例](.repo-launch-doctor.example.json)をコピーして編集してください。
+対象リポ直下へ`.repo-launch-doctor.json`を置きます。
 
 ```json
 {
   "project_type": "web",
-  "ignore_paths": ["private/**"],
+  "ignore_paths": [],
   "ignore_checks": [],
   "expected_ports": [8717],
   "expected_start_commands": ["start.bat"],
   "expected_health_endpoints": ["/health"],
-  "accepted_generated_paths": ["public/generated-demo/**"]
+  "accepted_generated_paths": ["public/generated-demo/**"],
+  "max_files": 10000,
+  "max_paths": 100000,
+  "max_file_bytes": 1000000
 }
 ```
 
-`project_type`には`auto`、`web`、`static-web`、`desktop`、`cli`、`library`、`docs`を指定できます。静的サイトは`static-web`にするとfaviconは検査しつつhealth endpointを要求しません。
+設定例は[.repo-launch-doctor.example.json](.repo-launch-doctor.example.json)、全項目は[設定リファレンス](docs/configuration.md)を参照してください。
+
+重要な挙動:
+
+- 未知の設定キー・check IDはエラーにします。タイプミスを黙って無視しません
+- `secret-risk-file`、`scan-incomplete`、`internal-check-error`は無効化できません
+- `ignore_paths`は内容読取の除外です。Git追跡済みの秘密情報候補を隠しません
+- 抑制したFindingと除外範囲はレポートへ明示します
+
+check ID一覧は[チェックリファレンス](docs/check-reference.md)にあります。
+
+## CIで使う
+
+```bash
+python -m repo_launch_doctor scan . --output reports/ci --fail-on high
+```
+
+終了コード:
+
+- `0`: 指定基準を超えるFindingなし
+- `1`: `--fail-on`の基準以上を検出
+- `2`: 設定エラー、入出力エラー、検査未完了
 
 ## 検証
 
-単体・E2Eテストを実行します。
-
-```powershell
+```bash
+python -m repo_launch_doctor scan . --output reports/self --fail-on high
 python -m unittest discover -s tests -v
-```
-
-構文確認とDoctor自身の検査です。
-
-```powershell
 python -m compileall repo_launch_doctor tests
-python -m repo_launch_doctor scan . --output reports/self --fail-on none
 ```
 
-設計と実装計画は次にあります。
-
-- [設計](docs/superpowers/specs/2026-07-11-repo-launch-doctor-design.md)
-- [実装計画](docs/superpowers/plans/2026-07-11-repo-launch-doctor.md)
+Windowsでは、別フォルダをカレントディレクトリにして`run-doctor.bat`を呼ぶテストも実行します。
 
 ## 安全性
 
-- 対象リポのファイルは変更しません
-- 対象リポに書かれたコマンドは実行しません
-- 秘密情報らしいファイルは内容をレポートへ転記しません
-- `.git`、依存ツリー、モデル、メディア、大容量ファイルは既定で読み飛ばします
-- シンボリックリンク経由で対象ルート外のファイルを読みません
-- 検査ファイル数と1ファイルあたりのサイズに上限があります
+- 対象リポジトリを変更しません
+- 対象リポジトリに記載されたコマンドを実行しません
+- 秘密情報候補の内容をレポートへ転記しません
+- `.git`、依存ツリー、モデル、メディア、大容量ファイルの内容は読みません
+- ファイル名とGit追跡状態は内容読取とは分離して確認します
+- シンボリックリンクを追跡しません
+- 上限到達や読取失敗を成功扱いしません
 
-詳細は[セキュリティ方針](SECURITY.md)を参照してください。
+脆弱性報告は[SECURITY.md](SECURITY.md)を参照してください。
 
 ## 制限事項
 
-- 静的検査なので、READMEに書かれたコマンドが実際に成功するかまでは判定しません
-- 独自形式の起動方法や動的に作られるパスは検出できない場合があります
-- 秘密情報の内容スキャンではなく、危険なファイル名と公開構成を中心に検査します
-- スコアはセキュリティ監査、法務確認、脆弱性診断の代替ではありません
-- Gitがないフォルダでは「追跡済みか」を区別できないため、存在する危険ファイルを保守的に警告します
+- 静的検査です。READMEに書かれたコマンドが実際に成功するかまでは判定しません
+- 秘密値そのものを探索するシークレットスキャナーではありません
+- Git履歴に過去の秘密情報が残っているかは検査しません
+- 独自ビルドシステムや動的に生成される入口は検出できない場合があります
+- faviconは宣言とファイルの存在を確認しますが、ブラウザ表示までは確認しません
+- スコアはセキュリティ監査、脆弱性診断、法務確認の代替ではありません
+- Gitがないフォルダでは追跡状態を区別できません。`.gitignore` の一般的な規則は補助利用しますが、複雑な規則では保守的に警告する場合があります
+
+## Contributing
+
+不具合報告や改善提案は歓迎します。[CONTRIBUTING.md](CONTRIBUTING.md)を参照してください。
 
 ## License
 
