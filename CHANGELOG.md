@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0
+
+- Parse Python project entry points with `tomllib`, including scripts and GUI scripts.
+- Only suggest Python test commands when pytest or unittest evidence exists.
+- Detect README coverage from Markdown headings rather than incidental prose.
+- Add a fixed-SHA public repository benchmark runner, report schema, and decision records.
+
 ## 0.2.0
 
 - パス/Git状態の列挙とテキスト内容の読取を分離

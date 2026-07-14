@@ -215,3 +215,15 @@ CIではWindows・Ubuntu・macOS、Python 3.11〜3.13で検証します。Window
 ## License
 
 MIT License
+
+## Verification evidence
+
+The networked, fixed-SHA benchmark is separate from normal unit tests: run `python benchmarks/run_benchmarks.py`. Its generated results include per-check TP/FP/FN, precision, recall, false positives, and false negatives; see the [benchmark guide](benchmarks/README.md). See the [label policy](benchmarks/manifest.json), [ADR decisions](docs/adr/), [Before/After evidence status](docs/before-after.md), and [limitations](docs/adr/001-severity-and-incomplete.md). The report format also has a machine-readable [JSON Schema](schemas/report-v1.schema.json).
+
+## Setup
+
+Install with `python -m pip install .`.
+
+## Usage
+
+Run `repo-launch-doctor scan /path/to/target-repo --output reports/target --fail-on high`.
