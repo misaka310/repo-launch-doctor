@@ -1,8 +1,8 @@
 {
-  "target_id": "pallets--click",
-  "repository": "https://github.com/pallets/click.git",
-  "commit": "b67832c2167e5b0ff6764a8c04a0a9087e697b5a",
-  "project_type": "Python CLI",
+  "target_id": "gothinkster--react-redux-realworld-example-app--ee72eba40563",
+  "repository": "https://github.com/gothinkster/react-redux-realworld-example-app.git",
+  "commit": "ee72eba4056392c95a27bc48d385d3f54ba38a18",
+  "project_type": "Web application",
   "labels": {
     "missing-start-entrypoint": false
   },
@@ -10,9 +10,12 @@
   "checkout_succeeded": true,
   "scan_complete": true,
   "findings": [
+    "missing-health-check",
     "readme-missing-setup",
     "readme-missing-usage",
     "readme-missing-verification",
+    "missing-config-example",
+    "missing-favicon",
     "missing-security-doc",
     "readme-missing-limitations",
     "readme-missing-requirements"

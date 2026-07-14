@@ -1,10 +1,11 @@
 {
-  "target_id": "sindresorhus--electron-boilerplate",
-  "repository": "https://github.com/sindresorhus/electron-boilerplate.git",
-  "commit": "74c68912708d7bd40f51116064c11306bebf65ec",
-  "project_type": "Desktop application",
+  "target_id": "fazilet1820--laraveluppgift--1ea9b1fd97bd",
+  "repository": "https://github.com/Fazilet1820/LaravelUppgift.git",
+  "commit": "1ea9b1fd97bdd1b8da7d3d729a000b0816f00eec",
+  "project_type": "Laravel web application",
   "labels": {
-    "missing-start-entrypoint": false
+    "missing-start-entrypoint": false,
+    "readme-missing-verification": false
   },
   "fetch_succeeded": true,
   "checkout_succeeded": true,
@@ -12,9 +13,8 @@
   "findings": [
     "generated-artifact-present",
     "missing-health-check",
+    "missing-license",
     "readme-missing-usage",
-    "readme-missing-verification",
-    "missing-config-example",
     "missing-favicon",
     "missing-security-doc",
     "readme-missing-limitations",

@@ -1,5 +1,5 @@
 {
-  "target_id": "sindresorhus--open-cli",
+  "target_id": "sindresorhus--open-cli--199a2033ae41",
   "repository": "https://github.com/sindresorhus/open-cli.git",
   "commit": "199a2033ae41c65928b8b8bfd7936082a135aa8c",
   "project_type": "Node.js CLI",
@@ -11,7 +11,6 @@
   "scan_complete": true,
   "findings": [
     "secret-risk-file",
-    "missing-start-entrypoint",
     "readme-missing-verification",
     "missing-config-example",
     "readme-missing-limitations",

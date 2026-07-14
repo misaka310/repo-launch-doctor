@@ -1,7 +1,7 @@
 {
-  "target_id": "tiangolo--typer",
-  "repository": "https://github.com/tiangolo/typer.git",
-  "commit": "3a3bd0f20a417835d4b4505a0bf834620e024cdb",
+  "target_id": "pallets--click--b67832c2167e",
+  "repository": "https://github.com/pallets/click.git",
+  "commit": "b67832c2167e5b0ff6764a8c04a0a9087e697b5a",
   "project_type": "Python CLI",
   "labels": {
     "missing-start-entrypoint": false
@@ -10,7 +10,7 @@
   "checkout_succeeded": true,
   "scan_complete": true,
   "findings": [
-    "secret-risk-file",
+    "readme-missing-setup",
     "readme-missing-usage",
     "readme-missing-verification",
     "missing-security-doc",
@@ -18,5 +18,5 @@
     "readme-missing-requirements"
   ],
   "execution_error": null,
-  "verdict": "FAIL"
+  "verdict": "PASS_WITH_NOTES"
 }

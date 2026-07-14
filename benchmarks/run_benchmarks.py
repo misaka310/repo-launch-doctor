@@ -43,7 +43,7 @@ def _target_id(item: dict[str, Any]) -> str:
     path = urlparse(item["repository"]).path.strip("/")
     owner, name = path.split("/", 1)
     name = name.removesuffix(".git")
-    raw = f"{owner}--{name}".lower()
+    raw = f"{owner}--{name}--{item['commit'][:12]}".lower()
     return re.sub(r"[^a-z0-9._-]+", "-", raw).strip("-")
 
 
@@ -81,7 +81,7 @@ def _validate_manifest(manifest: dict[str, Any]) -> list[str]:
     entries = manifest.get("repositories")
     if not isinstance(entries, list) or len(entries) != 20:
         return ["manifest must contain exactly 20 repositories"]
-    repositories: set[str] = set()
+    repository_commits: set[tuple[str, str]] = set()
     target_ids: set[str] = set()
     for index, item in enumerate(entries):
         if not isinstance(item, dict):
@@ -97,12 +97,13 @@ def _validate_manifest(manifest: dict[str, Any]) -> list[str]:
             parts = urlparse(repository).path.strip("/").split("/")
             if len(parts) != 2 or not all(parts):
                 errors.append(f"repositories[{index}] has invalid GitHub repository path")
-            if repository in repositories:
-                errors.append(f"repositories[{index}] duplicates repository")
-            repositories.add(repository)
+            repository_commit = (repository, item.get("commit"))
+            if repository_commit in repository_commits:
+                errors.append(f"repositories[{index}] duplicates repository and commit")
+            repository_commits.add(repository_commit)
             try:
                 target_id = _target_id(item)
-            except (KeyError, ValueError):
+            except (KeyError, TypeError, ValueError):
                 target_id = ""
             if target_id in target_ids:
                 errors.append(f"repositories[{index}] duplicates target id {target_id}")
@@ -169,6 +170,8 @@ def _cached_target(item: dict[str, Any], force: bool) -> dict[str, Any] | None:
         and existing.get("target_id") == target_id
         and existing.get("repository") == item["repository"]
         and existing.get("commit") == item["commit"]
+        and existing.get("project_type") == item["project_type"]
+        and existing.get("labels") == item["checks"]
         and existing.get("fetch_succeeded") is True
         and existing.get("checkout_succeeded") is True
         and existing.get("scan_complete") is True

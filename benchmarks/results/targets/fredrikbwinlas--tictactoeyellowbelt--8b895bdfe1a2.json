@@ -1,21 +1,20 @@
 {
-  "target_id": "preactjs--preact",
-  "repository": "https://github.com/preactjs/preact.git",
-  "commit": "67c9935e3e692bcf43f37b34bd7429054903c0d1",
-  "project_type": "JavaScript library",
+  "target_id": "fredrikbwinlas--tictactoeyellowbelt--8b895bdfe1a2",
+  "repository": "https://github.com/FredrikBWinLas/TicTacToeYellowBelt.git",
+  "commit": "8b895bdfe1a2e9c75818dfa3ca7b8a293df3a24f",
+  "project_type": ".NET console application (after launcher)",
   "labels": {
-    "missing-start-entrypoint": false
+    "missing-start-entrypoint": false,
+    "readme-missing-verification": true
   },
   "fetch_succeeded": true,
   "checkout_succeeded": true,
   "scan_complete": true,
   "findings": [
-    "missing-health-check",
+    "missing-license",
     "readme-missing-setup",
     "readme-missing-usage",
     "readme-missing-verification",
-    "missing-config-example",
-    "missing-favicon",
     "missing-security-doc",
     "readme-missing-limitations",
     "readme-missing-requirements"

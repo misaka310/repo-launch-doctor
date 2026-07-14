@@ -1,8 +1,8 @@
 {
-  "target_id": "pallets--flask",
-  "repository": "https://github.com/pallets/flask.git",
-  "commit": "36e4a824f340fdee7ed50937ba8e7f6bc7d17f81",
-  "project_type": "Python library",
+  "target_id": "pytest-dev--pytest--67a174fcee35",
+  "repository": "https://github.com/pytest-dev/pytest.git",
+  "commit": "67a174fcee355334c53588be2eeba8df702477e9",
+  "project_type": "Python CLI/library",
   "labels": {
     "missing-start-entrypoint": false
   },
@@ -10,16 +10,12 @@
   "checkout_succeeded": true,
   "scan_complete": true,
   "findings": [
-    "secret-risk-file",
-    "missing-health-check",
     "readme-missing-setup",
     "readme-missing-usage",
     "readme-missing-verification",
-    "missing-favicon",
-    "missing-security-doc",
     "readme-missing-limitations",
     "readme-missing-requirements"
   ],
   "execution_error": null,
-  "verdict": "FAIL"
+  "verdict": "PASS_WITH_NOTES"
 }

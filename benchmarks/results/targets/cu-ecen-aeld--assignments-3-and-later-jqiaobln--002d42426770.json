@@ -1,0 +1,23 @@
+{
+  "target_id": "cu-ecen-aeld--assignments-3-and-later-jqiaobln--002d42426770",
+  "repository": "https://github.com/cu-ecen-aeld/assignments-3-and-later-jqiaobln.git",
+  "commit": "002d4242677098a65c7352d4f39784c103da1649",
+  "project_type": "Embedded Linux assignment repository",
+  "labels": {
+    "missing-start-entrypoint": false,
+    "readme-missing-verification": false
+  },
+  "fetch_succeeded": true,
+  "checkout_succeeded": true,
+  "scan_complete": true,
+  "findings": [
+    "readme-missing-setup",
+    "readme-missing-usage",
+    "missing-config-example",
+    "missing-security-doc",
+    "readme-missing-limitations",
+    "readme-missing-requirements"
+  ],
+  "execution_error": null,
+  "verdict": "PASS_WITH_NOTES"
+}

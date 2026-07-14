@@ -6,11 +6,13 @@
 - Only suggest Python test commands when pytest or unittest evidence exists.
 - Detect README coverage from Markdown headings rather than incidental prose.
 - Add a fixed-SHA public repository benchmark runner, report schema, and decision records.
-- Make external benchmark runs resumable with validated repository and per-target caches, independent fetch/checkout/scan timeouts, and owner-qualified target IDs.
+- Make external benchmark runs resumable with validated repository and per-target caches, independent fetch/checkout/scan timeouts, and repository-plus-SHA target IDs that support Before/After commits from the same repository.
 - Publish formal benchmark artifacts only after a complete 20-target run; partial runs remain under `.benchmark-cache` and cannot overwrite public evidence.
 - Replace oversized or incomplete corpus targets with classification-equivalent fixed-SHA repositories and record every replacement and rejected candidate.
 - Add network-free benchmark-runner regression tests covering shallow fetches, cache invalidation, failure accounting, resume/force behavior, and publication boundaries.
-- Publish the first complete 20-target result: 20 fetches, 20 checkouts, 20 complete scans, 20 metric-eligible targets, and zero execution errors.
+- Recognize Node.js `package.json` `bin` declarations and descriptive root shell scripts such as `runqemu.sh` as entry points, and auto-classify documentation-only repositories so they do not require application launchers.
+- Add five verified public-history Before/After pairs and retain hard negative examples for Node.js CLI, documentation-only, and descriptive shell-launcher layouts.
+- Publish a complete balanced 20-target result with zero execution errors: TP 5 / FP 0 / FN 0 / TN 15 for `missing-start-entrypoint` and TP 6 / FP 0 / FN 0 / TN 4 for `readme-missing-verification`.
 
 ## 0.2.0
 

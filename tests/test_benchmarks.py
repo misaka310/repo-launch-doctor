@@ -55,6 +55,20 @@ def make_result(
 
 
 class BenchmarkRunnerTests(unittest.TestCase):
+    def test_public_manifest_has_positive_and_negative_examples(self) -> None:
+        manifest = json.loads(
+            (Path(__file__).resolve().parents[1] / "benchmarks" / "manifest.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        labels: dict[str, set[bool]] = {}
+        for item in manifest["repositories"]:
+            for check, expected in item["checks"].items():
+                labels.setdefault(check, set()).add(expected)
+
+        self.assertEqual(20, len(manifest["repositories"]))
+        self.assertEqual({False, True}, labels["missing-start-entrypoint"])
+        self.assertEqual({False, True}, labels["readme-missing-verification"])
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory()
         self.root = Path(self.temporary.name)
@@ -74,12 +88,18 @@ class BenchmarkRunnerTests(unittest.TestCase):
             patcher.stop()
         self.temporary.cleanup()
 
-    def test_target_ids_include_owner_and_do_not_collide(self) -> None:
+    def test_target_ids_include_owner_commit_and_do_not_collide(self) -> None:
         npm = make_item(1, owner="npm", name="cli")
+        npm["commit"] = "b" * 40
         github = make_item(2, owner="cli", name="cli")
-        self.assertEqual(runner._target_id(npm), "npm--cli")
-        self.assertEqual(runner._target_id(github), "cli--cli")
+        github["commit"] = "c" * 40
+        self.assertEqual(runner._target_id(npm), "npm--cli--bbbbbbbbbbbb")
+        self.assertEqual(runner._target_id(github), "cli--cli--cccccccccccc")
         self.assertNotEqual(runner._target_id(npm), runner._target_id(github))
+
+        later = dict(npm)
+        later["commit"] = "d" * 40
+        self.assertNotEqual(runner._target_id(npm), runner._target_id(later))
 
     def test_fresh_fetch_uses_init_shallow_fixed_sha_and_never_clone(self) -> None:
         commands: list[list[str]] = []
@@ -231,6 +251,17 @@ class BenchmarkRunnerTests(unittest.TestCase):
         with patch.object(runner, "_repository_cache_is_valid", return_value=True):
             self.assertIsNotNone(runner._cached_target(item, force=False))
 
+    def test_resume_cache_is_invalidated_when_labels_change(self) -> None:
+        original = dict(BASE_ITEM)
+        path = runner.CACHE_TARGETS / f"{runner._target_id(original)}.json"
+        path.parent.mkdir(parents=True)
+        path.write_text(json.dumps(make_result(original)), encoding="utf-8")
+        changed = dict(original)
+        changed["checks"] = {"missing-start-entrypoint": False, "readme-missing-verification": True}
+
+        with patch.object(runner, "_repository_cache_is_valid", return_value=True):
+            self.assertIsNone(runner._cached_target(changed, force=False))
+
     def test_force_never_reuses_successful_target_result(self) -> None:
         item = dict(BASE_ITEM)
         path = runner.CACHE_TARGETS / f"{runner._target_id(item)}.json"
@@ -278,13 +309,23 @@ class BenchmarkRunnerTests(unittest.TestCase):
         self.assertEqual(metric["negative_labels"], 0)
         self.assertEqual(metric["coverage_status"], "no_negative_labels")
 
-    def test_manifest_must_have_unique_target_ids(self) -> None:
+    def test_manifest_allows_same_repository_at_distinct_commits(self) -> None:
         first = make_item(1, owner="same", name="repo")
+        first["commit"] = "a" * 40
         second = dict(first)
         second["commit"] = "b" * 40
         manifest = {"repositories": [first, second] + [make_item(index) for index in range(2, 20)]}
         errors = runner._validate_manifest(manifest)
-        self.assertTrue(any("target id" in error for error in errors), errors)
+        self.assertEqual([], errors)
+
+    def test_manifest_rejects_duplicate_repository_commit_pair(self) -> None:
+        first = make_item(1, owner="same", name="repo")
+        second = dict(first)
+        manifest = {
+            "repositories": [first, second] + [make_item(index) for index in range(2, 20)]
+        }
+        errors = runner._validate_manifest(manifest)
+        self.assertTrue(any("repository and commit" in error for error in errors), errors)
 
     def test_invalid_manifest_returns_exit_code_2(self) -> None:
         with patch.object(runner, "_load_manifest", return_value={"repositories": []}):

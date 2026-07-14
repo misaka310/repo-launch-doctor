@@ -135,6 +135,24 @@ class RepoLaunchDoctorTests(unittest.TestCase):
             )
             self.assertIn("run-doctor.bat", report.metadata["start_commands"])
 
+    def test_descriptive_root_shell_launcher_is_detected(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "runqemu.sh").write_text("#!/bin/sh\n", encoding="utf-8")
+            (root / "run-tests.sh").write_text("#!/bin/sh\n", encoding="utf-8")
+            (root / "examples").mkdir()
+            (root / "examples" / "start-example.sh").write_text("#!/bin/sh\n", encoding="utf-8")
+
+            report = scan_repository(root)
+
+            self.assertIn("runqemu.sh", report.metadata["start_commands"])
+            self.assertNotIn("run-tests.sh", report.metadata["start_commands"])
+            self.assertNotIn("examples/start-example.sh", report.metadata["start_commands"])
+            self.assertNotIn(
+                "missing-start-entrypoint", {finding.check_id for finding in report.findings}
+            )
+
     def test_env_example_is_not_treated_as_secret(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -461,6 +479,35 @@ class RepoLaunchDoctorTests(unittest.TestCase):
             )
             report = scan_repository(root)
             self.assertIn("sample-gui", report.metadata["start_commands"])
+
+    def test_package_bin_is_a_node_cli_entrypoint(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "package.json").write_text(
+                json.dumps({"name": "sample-cli", "bin": {"sample": "cli.js"}}),
+                encoding="utf-8",
+            )
+
+            report = scan_repository(root)
+
+            self.assertIn("sample", report.metadata["start_commands"])
+            self.assertNotIn(
+                "missing-start-entrypoint", {finding.check_id for finding in report.findings}
+            )
+
+    def test_docs_only_repository_is_not_required_to_have_a_launcher(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "guide.md").write_text("# Guide\n", encoding="utf-8")
+
+            report = scan_repository(root)
+
+            self.assertEqual("docs", report.metadata["project_type"])
+            self.assertNotIn(
+                "missing-start-entrypoint", {finding.check_id for finding in report.findings}
+            )
 
     def test_broken_pyproject_does_not_create_a_phantom_cli(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

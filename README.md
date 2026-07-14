@@ -218,7 +218,7 @@ MIT License
 
 ## Verification evidence
 
-The networked, fixed-SHA benchmark is separate from normal unit tests and CI: run `python benchmarks/run_benchmarks.py --resume` after completing targets in small batches. Formal results are published only for a complete 20-target run and include fetch, checkout, scan, eligibility, execution-error, TP/FP/FN/TN, precision, recall, and coverage data. See the [published benchmark results](benchmarks/results/latest.md), [benchmark guide](benchmarks/README.md), [label and replacement history](benchmarks/label-history.md), [ADR decisions](docs/adr/), [Before/After evidence status](docs/before-after.md), and [limitations](docs/adr/001-severity-and-incomplete.md). The report format also has a machine-readable [JSON Schema](schemas/report-v1.schema.json).
+The networked, fixed-SHA benchmark is separate from normal unit tests and CI. The current corpus contains five verified public-history Before/After pairs and ten additional negative examples. All 20 revisions fetched, checked out, and scanned completely with zero execution errors. On this fixed corpus, `missing-start-entrypoint` produced TP 5 / FP 0 / FN 0 / TN 15, and `readme-missing-verification` produced TP 6 / FP 0 / FN 0 / TN 4. These figures do not claim universal accuracy or runtime correctness. See the [published benchmark results](benchmarks/results/latest.md), [benchmark guide](benchmarks/README.md), [label and research history](benchmarks/label-history.md), [five Before/After cases](docs/before-after.md), [ADR decisions](docs/adr/), and [limitations](docs/adr/001-severity-and-incomplete.md). The report format also has a machine-readable [JSON Schema](schemas/report-v1.schema.json).
 
 ## Setup
 

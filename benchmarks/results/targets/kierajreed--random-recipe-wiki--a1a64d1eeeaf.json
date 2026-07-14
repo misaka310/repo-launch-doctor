@@ -1,16 +1,16 @@
 {
-  "target_id": "gothinkster--react-redux-realworld-example-app",
-  "repository": "https://github.com/gothinkster/react-redux-realworld-example-app.git",
-  "commit": "ee72eba4056392c95a27bc48d385d3f54ba38a18",
-  "project_type": "Web application",
+  "target_id": "kierajreed--random-recipe-wiki--a1a64d1eeeaf",
+  "repository": "https://github.com/kierajreed/random-recipe-wiki.git",
+  "commit": "a1a64d1eeeaf93e3a46469d3850bdaaa93b5c5e0",
+  "project_type": "Node.js application (after start script)",
   "labels": {
-    "missing-start-entrypoint": false
+    "missing-start-entrypoint": false,
+    "readme-missing-verification": true
   },
   "fetch_succeeded": true,
   "checkout_succeeded": true,
   "scan_complete": true,
   "findings": [
-    "missing-health-check",
     "readme-missing-setup",
     "readme-missing-usage",
     "readme-missing-verification",

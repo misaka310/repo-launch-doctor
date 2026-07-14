@@ -1,45 +1,45 @@
 # Fixed-SHA benchmark
 
-This benchmark evaluates Repo Launch Doctor against 20 public repositories pinned to immutable 40-character commit SHAs. It is an explicit, networked verification workflow; normal unit tests and GitHub Actions do not fetch the corpus.
+This benchmark evaluates Repo Launch Doctor against 20 public repository revisions pinned to immutable 40-character commit SHAs. The corpus includes five verified Before/After pairs, ten additional negative examples, and labels for two checks. It is an explicit networked workflow; normal unit tests and GitHub Actions do not fetch the corpus.
+
+The Before/After entries compare public third-party history. Repo Launch Doctor did not modify those repositories.
 
 ## Run in resumable batches
 
-Use owner-qualified target IDs so repositories with the same basename cannot collide:
+Target IDs contain the repository owner, name, and the first 12 characters of the pinned SHA. This allows two commits from the same repository to coexist without cache or result collisions.
 
 ```bash
 python benchmarks/run_benchmarks.py \
-  --only pallets--click \
-  --only tiangolo--typer \
-  --only psf--black \
-  --only psf--requests \
+  --only ckala62rus--go-architecture-v2--2fc3164e0d8c \
+  --only ckala62rus--go-architecture-v2--df7c7b4f0aec \
   --allow-partial
 ```
 
 Continue with another batch using `--resume`. A cached result is reused only when its JSON is valid and the local Git repository has the expected origin URL, contains the pinned commit, and has that exact commit checked out.
 
 ```bash
-python benchmarks/run_benchmarks.py --resume --only pytest-dev--pytest --allow-partial
+python benchmarks/run_benchmarks.py --resume
 ```
 
-`--force` bypasses successful target-result reuse and refetches the pinned SHA. Fetch, checkout, and Doctor scan each have independent timeouts and error stages.
+`--force` bypasses successful target-result reuse and refetches the pinned SHA. Fetch, checkout, and Doctor scan have independent timeouts and error stages.
 
 ## Fetch contract
 
-The runner does not use a normal clone. For each target it initializes a local repository under `.benchmark-cache/repositories/`, configures `origin`, fetches only the pinned commit with `--depth=1 --no-tags`, and checks out `FETCH_HEAD` detached.
+The runner does not use a normal clone. For each target it initializes a repository under `.benchmark-cache/repositories/`, configures `origin`, fetches only the pinned commit with `--depth=1 --no-tags`, and checks out `FETCH_HEAD` detached.
 
-Local repositories, scan reports, per-target resume data, and partial aggregates remain under `.benchmark-cache/`, which is ignored by Git.
+Local repositories, scan reports, resume data, research candidates, and partial aggregates remain under `.benchmark-cache/`, which is ignored by Git.
 
 ## Partial and formal results
 
-A partial run exits with code 1 by default. `--allow-partial` changes only that inspection exit code; it does not make the run complete and does not publish formal results.
+A partial run exits with code 1 by default. `--allow-partial` changes only that inspection exit code; it does not make the run complete or publish formal results.
 
-Formal files are written only when all 20 targets satisfy every condition below:
+Formal files are replaced only when all 20 targets meet every condition:
 
-- fetch succeeded
-- checkout succeeded at the pinned SHA
-- Doctor returned a complete scan
-- no execution error occurred
-- all 20 targets are eligible for metrics
+- fetch succeeded;
+- checkout succeeded at the pinned SHA;
+- Doctor returned a complete scan;
+- no execution error occurred; and
+- all 20 targets are eligible for metrics.
 
 A complete run publishes:
 
@@ -49,18 +49,19 @@ benchmarks/results/latest.md
 benchmarks/results/targets/*.json
 ```
 
-Run the final aggregation with:
-
-```bash
-python benchmarks/run_benchmarks.py --resume
-```
-
 The current published run records 20 successful fetches, 20 successful checkouts, 20 complete scans, 20 metric-eligible targets, and zero execution errors. See [`results/latest.md`](results/latest.md).
 
-## Metric semantics
+## Labels and metrics
 
-Labels in `manifest.json` describe repository facts at the pinned SHA. A label is evaluated only for a target that fetched, checked out, and scanned completely. Fetch failures, checkout failures, scan timeouts, scan exceptions, and `INCOMPLETE` reports are execution failures, not false negatives.
+Labels in `manifest.json` describe repository facts at the pinned SHA. They are assigned from source layout, documentation, and the actual public diff—not from the result the Doctor happened to produce. An execution failure is excluded from classification metrics rather than counted as a false negative.
 
-Each check reports positive and negative label counts, TP, FP, FN, TN, precision, recall, and coverage status. A zero denominator is represented as `null`, never as 100%. The current corpus has no positive labels, so recall is `null` with `coverage_status: no_positive_labels`.
+Current results:
 
-Target replacements and their fixed-SHA evidence are recorded in [`label-history.md`](label-history.md). Verified real-world Before/After cases remain at zero and are tracked separately in [`../docs/before-after.md`](../docs/before-after.md).
+| Check | Positive | Negative | TP | FP | FN | TN | Precision | Recall |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| `missing-start-entrypoint` | 5 | 15 | 5 | 0 | 0 | 15 | 1.0 | 1.0 |
+| `readme-missing-verification` | 6 | 4 | 6 | 0 | 0 | 4 | 1.0 | 1.0 |
+
+These figures are exact for this fixed corpus only. They do not establish universal accuracy or runtime correctness.
+
+Research methodology, accepted and rejected candidates, and prior corpus changes are recorded in [`label-history.md`](label-history.md). The five verified public-history pairs are documented in [`../docs/before-after.md`](../docs/before-after.md).

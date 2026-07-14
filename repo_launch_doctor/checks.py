@@ -251,6 +251,33 @@ def _check_markdown_links(inventory: Inventory, texts: dict[str, str]) -> list[F
     return findings
 
 
+def _load_package_data(texts: dict[str, str]) -> dict[str, object]:
+    raw = texts.get("package.json")
+    if raw is None:
+        return {}
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _package_bin_commands(texts: dict[str, str]) -> list[str]:
+    data = _load_package_data(texts)
+    declared = data.get("bin")
+    if isinstance(declared, dict):
+        return sorted(
+            str(name)
+            for name, target in declared.items()
+            if isinstance(name, str) and name.strip() and isinstance(target, str) and target.strip()
+        )
+    if isinstance(declared, str) and declared.strip():
+        package_name = data.get("name")
+        if isinstance(package_name, str) and package_name.strip():
+            return [package_name.rsplit("/", 1)[-1]]
+    return []
+
+
 def _load_package_scripts(texts: dict[str, str]) -> dict[str, str]:
     raw = texts.get("package.json")
     if raw is None:
@@ -311,15 +338,18 @@ def _detect_start_commands(
     commands: list[str] = []
     for relative in texts:
         name = Path(relative).name.casefold()
-        is_launcher = name in START_FILE_NAMES or (
-            Path(name).suffix in {".bat", ".cmd", ".ps1"}
+        is_descriptive_launcher = (
+            Path(name).suffix in {".bat", ".cmd", ".ps1", ".sh"}
             and name.startswith(("start", "run", "launch", "open"))
+            and not any(marker in name for marker in ("build", "install", "setup", "test"))
         )
+        is_launcher = name in START_FILE_NAMES or is_descriptive_launcher
         if "/" not in relative and is_launcher:
             commands.append(relative)
     for name in ("start", "dev", "serve"):
         if name in scripts:
             commands.append("npm start" if name == "start" else f"npm run {name}")
+    commands.extend(_package_bin_commands(texts))
     commands.extend(_python_script_commands(texts))
     for relative in texts:
         normalized = relative.casefold()
@@ -418,9 +448,10 @@ def _check_entrypoints(
     texts: dict[str, str],
     config: DoctorConfig,
     start_commands: list[str],
+    project_type: str,
 ) -> list[Finding]:
     findings: list[Finding] = []
-    if not start_commands and config.project_type not in {"library", "docs"}:
+    if not start_commands and project_type not in {"library", "docs"}:
         findings.append(
             _finding(
                 "missing-start-entrypoint",
@@ -755,6 +786,36 @@ def _check_scan_completeness(inventory: Inventory) -> list[Finding]:
     ]
 
 
+def _is_docs_only_repository(texts: dict[str, str], inventory: Inventory) -> bool:
+    if _find_readme(texts) is None:
+        return False
+    documentation_suffixes = {
+        ".adoc",
+        ".gif",
+        ".jpeg",
+        ".jpg",
+        ".md",
+        ".pdf",
+        ".png",
+        ".rst",
+        ".svg",
+        ".txt",
+        ".webp",
+    }
+    metadata_names = {".editorconfig", ".gitattributes", ".gitignore"}
+    for relative in inventory.all_file_paths:
+        normalized = relative.replace("\\", "/").casefold()
+        path = Path(normalized)
+        if normalized.startswith(".github/"):
+            continue
+        if path.name in metadata_names or path.name.startswith(("license", "readme")):
+            continue
+        if path.suffix in documentation_suffixes:
+            continue
+        return False
+    return True
+
+
 def _detected_project_type(
     texts: dict[str, str], inventory: Inventory, config: DoctorConfig
 ) -> str:
@@ -762,6 +823,8 @@ def _detected_project_type(
         return config.project_type
     if _is_web_project(texts, inventory.all_file_paths, config):
         return "web"
+    if _is_docs_only_repository(texts, inventory):
+        return "docs"
     if "pyproject.toml" in texts and (
         "[project.scripts]" in texts["pyproject.toml"]
         or "repo_launch_doctor/__main__.py" in inventory.all_file_paths
@@ -778,6 +841,7 @@ def run_checks(
     scripts = _load_package_scripts(texts)
     start_commands = _detect_start_commands(texts, scripts, config)
     verification_commands = _detect_verification_commands(scripts, texts)
+    project_type = _detected_project_type(texts, inventory, config)
     web_project = _is_web_project(texts, inventory.all_file_paths, config)
     ports = (
         _detect_ports(runtime_texts)
@@ -794,7 +858,7 @@ def run_checks(
         lambda: _check_scan_completeness(inventory),
         lambda: _check_readme(texts),
         lambda: _check_markdown_links(inventory, texts),
-        lambda: _check_entrypoints(texts, config, start_commands),
+        lambda: _check_entrypoints(texts, config, start_commands, project_type),
         lambda: _check_secret_risk(inventory),
         lambda: _check_generated_artifacts(inventory, config),
         lambda: _check_web_features(
@@ -828,7 +892,7 @@ def run_checks(
         sorted(Counter(finding.check_id for finding in suppressed).items())
     )
     metadata: dict[str, object] = {
-        "project_type": _detected_project_type(texts, inventory, config),
+        "project_type": project_type,
         "start_commands": start_commands,
         "verification_commands": verification_commands,
         "ports": ports,

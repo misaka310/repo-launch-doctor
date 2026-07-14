@@ -1,10 +1,11 @@
 {
-  "target_id": "google--zx",
-  "repository": "https://github.com/google/zx.git",
-  "commit": "00a2c484e219c2e84bfc3a199febf7fbce2cfbf4",
-  "project_type": "Node.js CLI",
+  "target_id": "psf--black--51abf53080b0",
+  "repository": "https://github.com/psf/black.git",
+  "commit": "51abf53080b09eab12143727641ff1e2cd39d8c9",
+  "project_type": "Python CLI",
   "labels": {
-    "missing-start-entrypoint": false
+    "missing-start-entrypoint": false,
+    "readme-missing-verification": false
   },
   "fetch_succeeded": true,
   "checkout_succeeded": true,
@@ -33,11 +34,8 @@
     "broken-markdown-link",
     "broken-markdown-link",
     "broken-markdown-link",
-    "missing-start-entrypoint",
-    "generated-artifact-present",
-    "readme-missing-verification",
-    "missing-config-example",
-    "missing-favicon",
+    "broken-markdown-link",
+    "broken-markdown-link",
     "readme-missing-limitations",
     "readme-missing-requirements"
   ],
