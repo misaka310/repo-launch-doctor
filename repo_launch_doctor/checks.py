@@ -323,7 +323,10 @@ def _detect_start_commands(
     commands.extend(_python_script_commands(texts))
     for relative in texts:
         normalized = relative.casefold()
-        if normalized.endswith("main.py") and not normalized.startswith(RUNTIME_EXCLUDED_PREFIXES):
+        if (
+            Path(relative).name.casefold() == "main.py"
+            and not normalized.startswith(RUNTIME_EXCLUDED_PREFIXES)
+        ):
             commands.append(f"python {relative}")
     if config.project_type == "static-web" and "index.html" in texts:
         commands.append("open index.html")

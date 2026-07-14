@@ -22,15 +22,17 @@ def validate_report_payload(payload: object) -> list[str]:
         if not isinstance(payload.get(key), int) or payload[key] < 0:
             errors.append(f"{key} must be a non-negative integer")
     score = payload.get("score")
-    if payload.get("verdict") == "INCOMPLETE":
-        if score is not None:
-            errors.append("INCOMPLETE score must be null")
-    elif not isinstance(score, int) or not 0 <= score <= 100:
+    complete = payload.get("verdict") != "INCOMPLETE"
+    if not complete and score is not None:
+        errors.append("INCOMPLETE score must be null")
+    elif complete and (not isinstance(score, int) or not 0 <= score <= 100):
         errors.append("complete report score must be an integer from 0 to 100")
     if not isinstance(payload.get("metadata"), dict) or not isinstance(payload.get("metadata", {}).get("scan_complete"), bool):
         errors.append("metadata.scan_complete must be a boolean")
+    elif payload["metadata"]["scan_complete"] != complete:
+        errors.append("verdict and metadata.scan_complete must agree")
     counts = payload.get("counts")
-    if not isinstance(counts, dict) or set(counts) != set(SEVERITY_ORDER):
+    if not isinstance(counts, dict) or set(counts) != set(SEVERITY_ORDER) or not all(isinstance(value, int) and value >= 0 for value in counts.values()):
         errors.append("counts must contain every severity")
     findings = payload.get("findings")
     if not isinstance(findings, list):

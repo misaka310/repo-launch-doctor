@@ -64,6 +64,17 @@ class RepoLaunchDoctorTests(unittest.TestCase):
             incomplete["metadata"]["scan_complete"] = False
             self.assertEqual(validate_report_payload(incomplete), [])
 
+    def test_report_schema_rejects_verdict_score_and_structure_mismatches(self) -> None:
+        report = ScanReport("sample", "2026-01-01T00:00:00Z", 0, 0, metadata={"scan_complete": True}).to_dict()
+        invalid = []
+        changed = dict(report); changed["score"] = None; invalid.append(changed)
+        changed = dict(report); changed["metadata"] = {"scan_complete": False}; invalid.append(changed)
+        changed = dict(report); changed["counts"] = {"HIGH": 0}; invalid.append(changed)
+        incomplete = dict(report); incomplete["verdict"] = "INCOMPLETE"; incomplete["score"] = 100; incomplete["metadata"] = {"scan_complete": False}; invalid.append(incomplete)
+        incomplete = dict(report); incomplete["verdict"] = "INCOMPLETE"; incomplete["score"] = None; incomplete["metadata"] = {"scan_complete": True}; invalid.append(incomplete)
+        for payload in invalid:
+            self.assertTrue(validate_report_payload(payload), payload)
+
     def test_config_loads_defaults_and_overrides(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -477,6 +488,25 @@ class RepoLaunchDoctorTests(unittest.TestCase):
             )
             report = scan_repository(root)
             self.assertEqual({"alpha", "beta"}, set(report.metadata["start_commands"]))
+
+    def test_main_py_detection_uses_exact_basename_and_runtime_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "main.py").write_text("", encoding="utf-8")
+            (root / "src" / "example").mkdir(parents=True)
+            (root / "src" / "example" / "main.py").write_text("", encoding="utf-8")
+            (root / "domain.py").write_text("", encoding="utf-8")
+            (root / "notmain.py").write_text("", encoding="utf-8")
+            (root / "tests").mkdir()
+            (root / "tests" / "main.py").write_text("", encoding="utf-8")
+            (root / "docs").mkdir()
+            (root / "docs" / "main.py").write_text("", encoding="utf-8")
+            report = scan_repository(root)
+            self.assertEqual(
+                {"python main.py", "python src/example/main.py"},
+                {command for command in report.metadata["start_commands"] if command.startswith("python ")},
+            )
 
     def test_pytest_repository_does_not_suggest_unittest(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

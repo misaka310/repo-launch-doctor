@@ -12,9 +12,9 @@
     "paths_discovered": {"type": "integer", "minimum": 0},
     "verdict": {"enum": ["PASS", "PASS_WITH_NOTES", "FAIL", "INCOMPLETE"]},
     "score": {"type": ["integer", "null"], "minimum": 0, "maximum": 100},
-    "counts": {"type": "object", "required": ["BLOCKER", "HIGH", "MEDIUM", "LOW", "INFO"]},
+    "counts": {"type": "object", "additionalProperties": false, "required": ["BLOCKER", "HIGH", "MEDIUM", "LOW", "INFO"], "properties": {"BLOCKER":{"type":"integer","minimum":0},"HIGH":{"type":"integer","minimum":0},"MEDIUM":{"type":"integer","minimum":0},"LOW":{"type":"integer","minimum":0},"INFO":{"type":"integer","minimum":0}}},
     "metadata": {"type": "object", "required": ["scan_complete"], "properties": {"scan_complete": {"type": "boolean"}}},
-    "findings": {"type": "array", "items": {"type": "object", "required": ["check_id", "severity", "title", "path", "evidence", "recommendation"], "properties": {"check_id": {"type": "string"}, "severity": {"enum": ["BLOCKER", "HIGH", "MEDIUM", "LOW", "INFO"]}, "title": {"type": "string"}, "path": {"type": "string"}, "evidence": {"type": "string"}, "recommendation": {"type": "string"}}}}
+    "findings": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["check_id", "severity", "title", "path", "evidence", "recommendation"], "properties": {"check_id": {"type": "string"}, "severity": {"enum": ["BLOCKER", "HIGH", "MEDIUM", "LOW", "INFO"]}, "title": {"type": "string"}, "path": {"type": "string"}, "evidence": {"type": "string"}, "recommendation": {"type": "string"}}}}
   },
-  "allOf": [{"if": {"properties": {"verdict": {"const": "INCOMPLETE"}}}, "then": {"properties": {"score": {"type": "null"}}}}]
+  "allOf": [{"if": {"properties": {"verdict": {"const": "INCOMPLETE"}}}, "then": {"properties": {"score": {"type": "null"}, "metadata": {"properties": {"scan_complete": {"const": false}}}}}, "else": {"properties": {"score": {"type": "integer", "minimum": 0, "maximum": 100}, "metadata": {"properties": {"scan_complete": {"const": true}}}}}}]
 }
