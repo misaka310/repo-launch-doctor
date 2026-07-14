@@ -97,6 +97,7 @@ class RepoLaunchDoctorTests(unittest.TestCase):
             config = load_config(root)
 
             self.assertIn("**/.git/**", config.ignore_paths)
+            self.assertIn("**/.benchmark-cache/**", config.ignore_paths)
             self.assertIn("archive/**", config.ignore_paths)
             self.assertEqual(config.expected_ports, (8717,))
             self.assertEqual(config.expected_start_commands, ("start.bat",))

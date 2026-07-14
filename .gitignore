@@ -9,8 +9,7 @@ build/
 dist/
 *.egg-info/
 reports/
-benchmarks/results/latest.json
-benchmarks/results/latest.md
+benchmarks/results/
 .benchmark-cache/
 doctor-output/
 .repo-launch-doctor.json
