@@ -1,26 +1,149 @@
 {
   "schema_version": 1,
-  "label_policy": "Labels describe observed repository facts, not desired tool outcomes. Changes require an entry in benchmarks/label-history.md.",
+  "label_policy": "Labels describe observed repository facts at the pinned commit, not desired tool outcomes. Changes require an entry in benchmarks/label-history.md.",
   "repositories": [
-    {"repository":"https://github.com/pallets/click.git","commit":"b67832c2167e5b0ff6764a8c04a0a9087e697b5a","project_type":"Python CLI","checks":{"missing-start-entrypoint":false},"reason":"pyproject console script is the documented CLI entry point."},
-    {"repository":"https://github.com/tiangolo/typer.git","commit":"3a3bd0f20a417835d4b4505a0bf834620e024cdb","project_type":"Python CLI","checks":{"missing-start-entrypoint":false},"reason":"Package metadata declares CLI scripts."},
-    {"repository":"https://github.com/psf/black.git","commit":"51abf53080b09eab12143727641ff1e2cd39d8c9","project_type":"Python CLI","checks":{"missing-start-entrypoint":false,"readme-missing-verification":false},"reason":"Black publishes a script entry point and test guidance."},
-    {"repository":"https://github.com/psf/requests.git","commit":"f361ead047be5cb873174218582f7d8b9fcd9f49","project_type":"Python library","checks":{"missing-start-entrypoint":false},"reason":"Requests is an importable library, not an application."},
-    {"repository":"https://github.com/pallets/flask.git","commit":"36e4a824f340fdee7ed50937ba8e7f6bc7d17f81","project_type":"Python library","checks":{"missing-start-entrypoint":false},"reason":"Flask is primarily packaged as a library."},
-    {"repository":"https://github.com/pytest-dev/pytest.git","commit":"67a174fcee355334c53588be2eeba8df702477e9","project_type":"Python CLI/library","checks":{"missing-start-entrypoint":false},"reason":"Pytest has a package script entry point."},
-    {"repository":"https://github.com/python/cpython.git","commit":"357c6500589ca7e065a6c263accfa1307d93c990","project_type":"Python runtime","checks":{"missing-start-entrypoint":false},"reason":"The source tree has documented build entry points rather than a root launcher."},
-    {"repository":"https://github.com/npm/cli.git","commit":"7b1f6c173d17b3bf30e45426f6df39473c6a1163","project_type":"Node.js CLI","checks":{"missing-start-entrypoint":false,"readme-missing-verification":false},"reason":"package.json bin and scripts define the CLI and tests."},
-    {"repository":"https://github.com/cli/cli.git","commit":"c14cbaa24a75272958161751240fd538a68e6c04","project_type":"Node.js CLI","checks":{"missing-start-entrypoint":false},"reason":"gh has a documented build and executable path."},
-    {"repository":"https://github.com/google/zx.git","commit":"00a2c484e219c2e84bfc3a199febf7fbce2cfbf4","project_type":"Node.js CLI","checks":{"missing-start-entrypoint":false},"reason":"package.json exposes a bin command."},
-    {"repository":"https://github.com/expressjs/express.git","commit":"ae6dd37680e3a00618d6c8a3e522f0ee4eeba1a4","project_type":"Dynamic web application","checks":{"missing-start-entrypoint":false},"reason":"npm scripts are a real development entry point."},
-    {"repository":"https://github.com/vercel/next.js.git","commit":"303f7ffd4a0db19948a71eba73cd85f366625a65","project_type":"Dynamic web application / monorepo","checks":{"missing-start-entrypoint":false},"reason":"The workspace defines package scripts."},
-    {"repository":"https://github.com/facebook/react.git","commit":"7023f501b644815e29a621875c0379ea757905f6","project_type":"JavaScript monorepo","checks":{"missing-start-entrypoint":false},"reason":"React is a library monorepo, not a launchable application."},
-    {"repository":"https://github.com/vuejs/core.git","commit":"9e03beb6b4c85a9d5b49b731c08263aa648e2a2a","project_type":"JavaScript monorepo","checks":{"missing-start-entrypoint":false},"reason":"Vue core is a library workspace."},
-    {"repository":"https://github.com/babel/babel.git","commit":"c86e9e4b272be7a8b9242bb310b26719393d700a","project_type":"JavaScript monorepo","checks":{"missing-start-entrypoint":false},"reason":"Babel uses package scripts and package entry points."},
-    {"repository":"https://github.com/microsoft/TypeScript.git","commit":"637d5746b70257028fb95aad32ddec6b26ab0a14","project_type":"JavaScript compiler / monorepo","checks":{"missing-start-entrypoint":false},"reason":"Compiler and test scripts are declared in package metadata."},
-    {"repository":"https://github.com/mdn/content.git","commit":"517b6108edc9a1eae8723f7f3ae434c1724d89ac","project_type":"Documentation-only","checks":{"missing-start-entrypoint":false},"reason":"MDN content is documentation, so no launcher is expected."},
-    {"repository":"https://github.com/microsoft/vscode.git","commit":"959c9c34a07ae9be5643e531125048fbf35c58d7","project_type":"Desktop application","checks":{"missing-start-entrypoint":false},"reason":"VS Code has package scripts and desktop build instructions."},
-    {"repository":"https://github.com/electron/electron.git","commit":"11a154de208843349e70c348e64f1ace58b124ca","project_type":"Desktop application","checks":{"missing-start-entrypoint":false},"reason":"Electron has explicit build and test commands."},
-    {"repository":"https://github.com/astropy/astropy.git","commit":"ed818fc907e57dcd85542367aabd6643f88c5db3","project_type":"Python library","checks":{"missing-start-entrypoint":false},"reason":"Astropy is an importable package with pytest configuration."}
+    {
+      "repository": "https://github.com/pallets/click.git",
+      "commit": "b67832c2167e5b0ff6764a8c04a0a9087e697b5a",
+      "project_type": "Python CLI",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned pyproject declares the Click console script."
+    },
+    {
+      "repository": "https://github.com/tiangolo/typer.git",
+      "commit": "3a3bd0f20a417835d4b4505a0bf834620e024cdb",
+      "project_type": "Python CLI",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned package metadata declares CLI scripts."
+    },
+    {
+      "repository": "https://github.com/psf/black.git",
+      "commit": "51abf53080b09eab12143727641ff1e2cd39d8c9",
+      "project_type": "Python CLI",
+      "checks": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "reason": "The pinned revision publishes a script entry point and verification guidance."
+    },
+    {
+      "repository": "https://github.com/psf/requests.git",
+      "commit": "f361ead047be5cb873174218582f7d8b9fcd9f49",
+      "project_type": "Python library",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned revision is an importable library, not an application requiring a launcher."
+    },
+    {
+      "repository": "https://github.com/pallets/flask.git",
+      "commit": "36e4a824f340fdee7ed50937ba8e7f6bc7d17f81",
+      "project_type": "Python library",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned revision is primarily a packaged library."
+    },
+    {
+      "repository": "https://github.com/pytest-dev/pytest.git",
+      "commit": "67a174fcee355334c53588be2eeba8df702477e9",
+      "project_type": "Python CLI/library",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned package metadata declares the pytest console script."
+    },
+    {
+      "repository": "https://github.com/pocketpy/pocketpy.git",
+      "commit": "e14478543648be32ce4140c1d5a44d29677d6720",
+      "project_type": "Python runtime",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned runtime source tree has documented build and executable entry points."
+    },
+    {
+      "repository": "https://github.com/sindresorhus/open-cli.git",
+      "commit": "199a2033ae41c65928b8b8bfd7936082a135aa8c",
+      "project_type": "Node.js CLI",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned package metadata exposes the open executable."
+    },
+    {
+      "repository": "https://github.com/sindresorhus/trash-cli.git",
+      "commit": "ee5b70565263a1027b4027d89cfb281bb71551e4",
+      "project_type": "Node.js CLI",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned package metadata exposes the trash executable."
+    },
+    {
+      "repository": "https://github.com/google/zx.git",
+      "commit": "00a2c484e219c2e84bfc3a199febf7fbce2cfbf4",
+      "project_type": "Node.js CLI",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned package metadata exposes a bin command."
+    },
+    {
+      "repository": "https://github.com/expressjs/express.git",
+      "commit": "ae6dd37680e3a00618d6c8a3e522f0ee4eeba1a4",
+      "project_type": "Dynamic web framework",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned revision is a framework package with package scripts rather than a standalone app launcher."
+    },
+    {
+      "repository": "https://github.com/gothinkster/react-redux-realworld-example-app.git",
+      "commit": "ee72eba4056392c95a27bc48d385d3f54ba38a18",
+      "project_type": "Web application",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned application declares npm start and build scripts."
+    },
+    {
+      "repository": "https://github.com/preactjs/preact.git",
+      "commit": "67c9935e3e692bcf43f37b34bd7429054903c0d1",
+      "project_type": "JavaScript library",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned revision is a JavaScript library with package entry points and scripts."
+    },
+    {
+      "repository": "https://github.com/vuejs/core.git",
+      "commit": "9e03beb6b4c85a9d5b49b731c08263aa648e2a2a",
+      "project_type": "JavaScript monorepo",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned revision is a library workspace with package scripts."
+    },
+    {
+      "repository": "https://github.com/changesets/changesets.git",
+      "commit": "162419dc99278cbdd52db6eabfecd7b8b4eac640",
+      "project_type": "JavaScript monorepo",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned multi-package workspace declares package scripts and CLI bins."
+    },
+    {
+      "repository": "https://github.com/alangpierce/sucrase.git",
+      "commit": "280ee202e73b18e396069782bd41e1eaaccbf620",
+      "project_type": "JavaScript compiler/library",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned compiler package declares executable and package entry points."
+    },
+    {
+      "repository": "https://github.com/kettanaito/naming-cheatsheet.git",
+      "commit": "7b90cd7b2d3ccb104a4443d5e7e152b8fd400533",
+      "project_type": "Documentation-only",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned repository is documentation content, so no application launcher is expected."
+    },
+    {
+      "repository": "https://github.com/sindresorhus/electron-boilerplate.git",
+      "commit": "74c68912708d7bd40f51116064c11306bebf65ec",
+      "project_type": "Desktop application",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned Electron application template declares start and build scripts."
+    },
+    {
+      "repository": "https://github.com/electron/simple-samples.git",
+      "commit": "3e4372b0273272ce40a267ad4d583cd6201aa540",
+      "project_type": "Desktop application",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned Electron sample applications provide executable package entry points."
+    },
+    {
+      "repository": "https://github.com/pallets/itsdangerous.git",
+      "commit": "672971d66a2ef9f85151e53283113f33d642dabd",
+      "project_type": "Python library",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned revision is an importable Python library, not an application requiring a launcher."
+    }
   ]
 }
