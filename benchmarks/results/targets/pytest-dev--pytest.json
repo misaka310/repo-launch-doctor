@@ -1,0 +1,21 @@
+{
+  "target_id": "pytest-dev--pytest",
+  "repository": "https://github.com/pytest-dev/pytest.git",
+  "commit": "67a174fcee355334c53588be2eeba8df702477e9",
+  "project_type": "Python CLI/library",
+  "labels": {
+    "missing-start-entrypoint": false
+  },
+  "fetch_succeeded": true,
+  "checkout_succeeded": true,
+  "scan_complete": true,
+  "findings": [
+    "readme-missing-setup",
+    "readme-missing-usage",
+    "readme-missing-verification",
+    "readme-missing-limitations",
+    "readme-missing-requirements"
+  ],
+  "execution_error": null,
+  "verdict": "PASS_WITH_NOTES"
+}

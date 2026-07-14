@@ -1,0 +1,25 @@
+{
+  "target_id": "pallets--flask",
+  "repository": "https://github.com/pallets/flask.git",
+  "commit": "36e4a824f340fdee7ed50937ba8e7f6bc7d17f81",
+  "project_type": "Python library",
+  "labels": {
+    "missing-start-entrypoint": false
+  },
+  "fetch_succeeded": true,
+  "checkout_succeeded": true,
+  "scan_complete": true,
+  "findings": [
+    "secret-risk-file",
+    "missing-health-check",
+    "readme-missing-setup",
+    "readme-missing-usage",
+    "readme-missing-verification",
+    "missing-favicon",
+    "missing-security-doc",
+    "readme-missing-limitations",
+    "readme-missing-requirements"
+  ],
+  "execution_error": null,
+  "verdict": "FAIL"
+}

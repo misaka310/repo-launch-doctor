@@ -1,0 +1,22 @@
+{
+  "target_id": "tiangolo--typer",
+  "repository": "https://github.com/tiangolo/typer.git",
+  "commit": "3a3bd0f20a417835d4b4505a0bf834620e024cdb",
+  "project_type": "Python CLI",
+  "labels": {
+    "missing-start-entrypoint": false
+  },
+  "fetch_succeeded": true,
+  "checkout_succeeded": true,
+  "scan_complete": true,
+  "findings": [
+    "secret-risk-file",
+    "readme-missing-usage",
+    "readme-missing-verification",
+    "missing-security-doc",
+    "readme-missing-limitations",
+    "readme-missing-requirements"
+  ],
+  "execution_error": null,
+  "verdict": "FAIL"
+}

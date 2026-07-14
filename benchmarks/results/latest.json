@@ -1,0 +1,851 @@
+{
+  "generated_at": "2026-07-14T15:52:48.745038+00:00",
+  "tool_version": "0.3.0",
+  "targets": 20,
+  "fetch_succeeded": 20,
+  "fetch_failed": 0,
+  "checkout_succeeded": 20,
+  "checkout_failed": 0,
+  "scan_completed": 20,
+  "scan_incomplete": 0,
+  "eligible_for_metrics": 20,
+  "execution_errors": 0,
+  "execution_error_details": [],
+  "results": [
+    {
+      "target_id": "pallets--click",
+      "repository": "https://github.com/pallets/click.git",
+      "commit": "b67832c2167e5b0ff6764a8c04a0a9087e697b5a",
+      "project_type": "Python CLI",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "PASS_WITH_NOTES"
+    },
+    {
+      "target_id": "tiangolo--typer",
+      "repository": "https://github.com/tiangolo/typer.git",
+      "commit": "3a3bd0f20a417835d4b4505a0bf834620e024cdb",
+      "project_type": "Python CLI",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "secret-risk-file",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "psf--black",
+      "repository": "https://github.com/psf/black.git",
+      "commit": "51abf53080b09eab12143727641ff1e2cd39d8c9",
+      "project_type": "Python CLI",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "psf--requests",
+      "repository": "https://github.com/psf/requests.git",
+      "commit": "f361ead047be5cb873174218582f7d8b9fcd9f49",
+      "project_type": "Python library",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "secret-risk-file",
+        "secret-risk-file",
+        "secret-risk-file",
+        "secret-risk-file",
+        "secret-risk-file",
+        "secret-risk-file",
+        "secret-risk-file",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-config-example",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "pallets--flask",
+      "repository": "https://github.com/pallets/flask.git",
+      "commit": "36e4a824f340fdee7ed50937ba8e7f6bc7d17f81",
+      "project_type": "Python library",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "secret-risk-file",
+        "missing-health-check",
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-favicon",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "pytest-dev--pytest",
+      "repository": "https://github.com/pytest-dev/pytest.git",
+      "commit": "67a174fcee355334c53588be2eeba8df702477e9",
+      "project_type": "Python CLI/library",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "PASS_WITH_NOTES"
+    },
+    {
+      "target_id": "pocketpy--pocketpy",
+      "repository": "https://github.com/pocketpy/pocketpy.git",
+      "commit": "e14478543648be32ce4140c1d5a44d29677d6720",
+      "project_type": "Python runtime",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "missing-start-entrypoint",
+        "readme-missing-setup",
+        "readme-missing-verification",
+        "missing-favicon",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "sindresorhus--open-cli",
+      "repository": "https://github.com/sindresorhus/open-cli.git",
+      "commit": "199a2033ae41c65928b8b8bfd7936082a135aa8c",
+      "project_type": "Node.js CLI",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "secret-risk-file",
+        "missing-start-entrypoint",
+        "readme-missing-verification",
+        "missing-config-example",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "sindresorhus--trash-cli",
+      "repository": "https://github.com/sindresorhus/trash-cli.git",
+      "commit": "ee5b70565263a1027b4027d89cfb281bb71551e4",
+      "project_type": "Node.js CLI",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "secret-risk-file",
+        "missing-start-entrypoint",
+        "readme-missing-verification",
+        "missing-config-example",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "google--zx",
+      "repository": "https://github.com/google/zx.git",
+      "commit": "00a2c484e219c2e84bfc3a199febf7fbce2cfbf4",
+      "project_type": "Node.js CLI",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "missing-start-entrypoint",
+        "generated-artifact-present",
+        "readme-missing-verification",
+        "missing-config-example",
+        "missing-favicon",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "expressjs--express",
+      "repository": "https://github.com/expressjs/express.git",
+      "commit": "ae6dd37680e3a00618d6c8a3e522f0ee4eeba1a4",
+      "project_type": "Dynamic web framework",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "secret-risk-file",
+        "missing-start-entrypoint",
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-config-example",
+        "missing-favicon",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "gothinkster--react-redux-realworld-example-app",
+      "repository": "https://github.com/gothinkster/react-redux-realworld-example-app.git",
+      "commit": "ee72eba4056392c95a27bc48d385d3f54ba38a18",
+      "project_type": "Web application",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "missing-health-check",
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-config-example",
+        "missing-favicon",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "PASS_WITH_NOTES"
+    },
+    {
+      "target_id": "preactjs--preact",
+      "repository": "https://github.com/preactjs/preact.git",
+      "commit": "67c9935e3e692bcf43f37b34bd7429054903c0d1",
+      "project_type": "JavaScript library",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "missing-health-check",
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-config-example",
+        "missing-favicon",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "PASS_WITH_NOTES"
+    },
+    {
+      "target_id": "vuejs--core",
+      "repository": "https://github.com/vuejs/core.git",
+      "commit": "9e03beb6b4c85a9d5b49b731c08263aa648e2a2a",
+      "project_type": "JavaScript monorepo",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "missing-health-check",
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-config-example",
+        "missing-favicon",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "PASS_WITH_NOTES"
+    },
+    {
+      "target_id": "changesets--changesets",
+      "repository": "https://github.com/changesets/changesets.git",
+      "commit": "162419dc99278cbdd52db6eabfecd7b8b4eac640",
+      "project_type": "JavaScript monorepo",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "missing-start-entrypoint",
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-config-example",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "alangpierce--sucrase",
+      "repository": "https://github.com/alangpierce/sucrase.git",
+      "commit": "280ee202e73b18e396069782bd41e1eaaccbf620",
+      "project_type": "JavaScript compiler/library",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "missing-start-entrypoint",
+        "readme-missing-setup",
+        "readme-missing-verification",
+        "missing-favicon",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "kettanaito--naming-cheatsheet",
+      "repository": "https://github.com/kettanaito/naming-cheatsheet.git",
+      "commit": "7b90cd7b2d3ccb104a4443d5e7e152b8fd400533",
+      "project_type": "Documentation-only",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "missing-start-entrypoint",
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "sindresorhus--electron-boilerplate",
+      "repository": "https://github.com/sindresorhus/electron-boilerplate.git",
+      "commit": "74c68912708d7bd40f51116064c11306bebf65ec",
+      "project_type": "Desktop application",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "generated-artifact-present",
+        "missing-health-check",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-config-example",
+        "missing-favicon",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "PASS_WITH_NOTES"
+    },
+    {
+      "target_id": "electron--simple-samples",
+      "repository": "https://github.com/electron/simple-samples.git",
+      "commit": "3e4372b0273272ce40a267ad4d583cd6201aa540",
+      "project_type": "Desktop application",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "missing-start-entrypoint",
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-favicon",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "pallets--itsdangerous",
+      "repository": "https://github.com/pallets/itsdangerous.git",
+      "commit": "672971d66a2ef9f85151e53283113f33d642dabd",
+      "project_type": "Python library",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-config-example",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "PASS_WITH_NOTES"
+    }
+  ],
+  "complete_run": true,
+  "partial_result": false,
+  "metrics": {
+    "missing-start-entrypoint": {
+      "positive_labels": 0,
+      "negative_labels": 20,
+      "TP": 0,
+      "FP": 9,
+      "FN": 0,
+      "TN": 11,
+      "precision": 0.0,
+      "recall": null,
+      "coverage_status": "no_positive_labels"
+    },
+    "readme-missing-verification": {
+      "positive_labels": 0,
+      "negative_labels": 1,
+      "TP": 0,
+      "FP": 0,
+      "FN": 0,
+      "TN": 1,
+      "precision": null,
+      "recall": null,
+      "coverage_status": "no_positive_labels"
+    }
+  },
+  "false_positives": [
+    {
+      "target_id": "pocketpy--pocketpy",
+      "repository": "https://github.com/pocketpy/pocketpy.git",
+      "commit": "e14478543648be32ce4140c1d5a44d29677d6720",
+      "project_type": "Python runtime",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "missing-start-entrypoint",
+        "readme-missing-setup",
+        "readme-missing-verification",
+        "missing-favicon",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "sindresorhus--open-cli",
+      "repository": "https://github.com/sindresorhus/open-cli.git",
+      "commit": "199a2033ae41c65928b8b8bfd7936082a135aa8c",
+      "project_type": "Node.js CLI",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "secret-risk-file",
+        "missing-start-entrypoint",
+        "readme-missing-verification",
+        "missing-config-example",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "sindresorhus--trash-cli",
+      "repository": "https://github.com/sindresorhus/trash-cli.git",
+      "commit": "ee5b70565263a1027b4027d89cfb281bb71551e4",
+      "project_type": "Node.js CLI",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "secret-risk-file",
+        "missing-start-entrypoint",
+        "readme-missing-verification",
+        "missing-config-example",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "google--zx",
+      "repository": "https://github.com/google/zx.git",
+      "commit": "00a2c484e219c2e84bfc3a199febf7fbce2cfbf4",
+      "project_type": "Node.js CLI",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "missing-start-entrypoint",
+        "generated-artifact-present",
+        "readme-missing-verification",
+        "missing-config-example",
+        "missing-favicon",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "expressjs--express",
+      "repository": "https://github.com/expressjs/express.git",
+      "commit": "ae6dd37680e3a00618d6c8a3e522f0ee4eeba1a4",
+      "project_type": "Dynamic web framework",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "secret-risk-file",
+        "missing-start-entrypoint",
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-config-example",
+        "missing-favicon",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "changesets--changesets",
+      "repository": "https://github.com/changesets/changesets.git",
+      "commit": "162419dc99278cbdd52db6eabfecd7b8b4eac640",
+      "project_type": "JavaScript monorepo",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "missing-start-entrypoint",
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-config-example",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "alangpierce--sucrase",
+      "repository": "https://github.com/alangpierce/sucrase.git",
+      "commit": "280ee202e73b18e396069782bd41e1eaaccbf620",
+      "project_type": "JavaScript compiler/library",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "missing-start-entrypoint",
+        "readme-missing-setup",
+        "readme-missing-verification",
+        "missing-favicon",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "kettanaito--naming-cheatsheet",
+      "repository": "https://github.com/kettanaito/naming-cheatsheet.git",
+      "commit": "7b90cd7b2d3ccb104a4443d5e7e152b8fd400533",
+      "project_type": "Documentation-only",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "missing-start-entrypoint",
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "electron--simple-samples",
+      "repository": "https://github.com/electron/simple-samples.git",
+      "commit": "3e4372b0273272ce40a267ad4d583cd6201aa540",
+      "project_type": "Desktop application",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "missing-start-entrypoint",
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-favicon",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    }
+  ],
+  "false_negatives": []
+}

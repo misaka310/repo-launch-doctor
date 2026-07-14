@@ -1,0 +1,28 @@
+{
+  "target_id": "psf--requests",
+  "repository": "https://github.com/psf/requests.git",
+  "commit": "f361ead047be5cb873174218582f7d8b9fcd9f49",
+  "project_type": "Python library",
+  "labels": {
+    "missing-start-entrypoint": false
+  },
+  "fetch_succeeded": true,
+  "checkout_succeeded": true,
+  "scan_complete": true,
+  "findings": [
+    "secret-risk-file",
+    "secret-risk-file",
+    "secret-risk-file",
+    "secret-risk-file",
+    "secret-risk-file",
+    "secret-risk-file",
+    "secret-risk-file",
+    "readme-missing-usage",
+    "readme-missing-verification",
+    "missing-config-example",
+    "readme-missing-limitations",
+    "readme-missing-requirements"
+  ],
+  "execution_error": null,
+  "verdict": "FAIL"
+}

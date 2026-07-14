@@ -1,0 +1,25 @@
+{
+  "target_id": "preactjs--preact",
+  "repository": "https://github.com/preactjs/preact.git",
+  "commit": "67c9935e3e692bcf43f37b34bd7429054903c0d1",
+  "project_type": "JavaScript library",
+  "labels": {
+    "missing-start-entrypoint": false
+  },
+  "fetch_succeeded": true,
+  "checkout_succeeded": true,
+  "scan_complete": true,
+  "findings": [
+    "missing-health-check",
+    "readme-missing-setup",
+    "readme-missing-usage",
+    "readme-missing-verification",
+    "missing-config-example",
+    "missing-favicon",
+    "missing-security-doc",
+    "readme-missing-limitations",
+    "readme-missing-requirements"
+  ],
+  "execution_error": null,
+  "verdict": "PASS_WITH_NOTES"
+}

@@ -1,0 +1,24 @@
+{
+  "target_id": "electron--simple-samples",
+  "repository": "https://github.com/electron/simple-samples.git",
+  "commit": "3e4372b0273272ce40a267ad4d583cd6201aa540",
+  "project_type": "Desktop application",
+  "labels": {
+    "missing-start-entrypoint": false
+  },
+  "fetch_succeeded": true,
+  "checkout_succeeded": true,
+  "scan_complete": true,
+  "findings": [
+    "missing-start-entrypoint",
+    "readme-missing-setup",
+    "readme-missing-usage",
+    "readme-missing-verification",
+    "missing-favicon",
+    "missing-security-doc",
+    "readme-missing-limitations",
+    "readme-missing-requirements"
+  ],
+  "execution_error": null,
+  "verdict": "FAIL"
+}

@@ -1,0 +1,42 @@
+{
+  "target_id": "changesets--changesets",
+  "repository": "https://github.com/changesets/changesets.git",
+  "commit": "162419dc99278cbdd52db6eabfecd7b8b4eac640",
+  "project_type": "JavaScript monorepo",
+  "labels": {
+    "missing-start-entrypoint": false
+  },
+  "fetch_succeeded": true,
+  "checkout_succeeded": true,
+  "scan_complete": true,
+  "findings": [
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "missing-start-entrypoint",
+    "readme-missing-setup",
+    "readme-missing-usage",
+    "readme-missing-verification",
+    "missing-config-example",
+    "missing-security-doc",
+    "readme-missing-limitations",
+    "readme-missing-requirements"
+  ],
+  "execution_error": null,
+  "verdict": "FAIL"
+}

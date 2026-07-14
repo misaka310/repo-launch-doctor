@@ -218,7 +218,7 @@ MIT License
 
 ## Verification evidence
 
-The networked, fixed-SHA benchmark is separate from normal unit tests: run `python benchmarks/run_benchmarks.py`. Its generated results include per-check TP/FP/FN, precision, recall, false positives, and false negatives; see the [benchmark guide](benchmarks/README.md). See the [label policy](benchmarks/manifest.json), [ADR decisions](docs/adr/), [Before/After evidence status](docs/before-after.md), and [limitations](docs/adr/001-severity-and-incomplete.md). The report format also has a machine-readable [JSON Schema](schemas/report-v1.schema.json).
+The networked, fixed-SHA benchmark is separate from normal unit tests and CI: run `python benchmarks/run_benchmarks.py --resume` after completing targets in small batches. Formal results are published only for a complete 20-target run and include fetch, checkout, scan, eligibility, execution-error, TP/FP/FN/TN, precision, recall, and coverage data. See the [published benchmark results](benchmarks/results/latest.md), [benchmark guide](benchmarks/README.md), [label and replacement history](benchmarks/label-history.md), [ADR decisions](docs/adr/), [Before/After evidence status](docs/before-after.md), and [limitations](docs/adr/001-severity-and-incomplete.md). The report format also has a machine-readable [JSON Schema](schemas/report-v1.schema.json).
 
 ## Setup
 

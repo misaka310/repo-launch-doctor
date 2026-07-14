@@ -1,0 +1,33 @@
+{
+  "target_id": "pocketpy--pocketpy",
+  "repository": "https://github.com/pocketpy/pocketpy.git",
+  "commit": "e14478543648be32ce4140c1d5a44d29677d6720",
+  "project_type": "Python runtime",
+  "labels": {
+    "missing-start-entrypoint": false
+  },
+  "fetch_succeeded": true,
+  "checkout_succeeded": true,
+  "scan_complete": true,
+  "findings": [
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "broken-markdown-link",
+    "missing-start-entrypoint",
+    "readme-missing-setup",
+    "readme-missing-verification",
+    "missing-favicon",
+    "missing-security-doc",
+    "readme-missing-limitations",
+    "readme-missing-requirements"
+  ],
+  "execution_error": null,
+  "verdict": "FAIL"
+}

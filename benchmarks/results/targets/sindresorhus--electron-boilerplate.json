@@ -1,0 +1,25 @@
+{
+  "target_id": "sindresorhus--electron-boilerplate",
+  "repository": "https://github.com/sindresorhus/electron-boilerplate.git",
+  "commit": "74c68912708d7bd40f51116064c11306bebf65ec",
+  "project_type": "Desktop application",
+  "labels": {
+    "missing-start-entrypoint": false
+  },
+  "fetch_succeeded": true,
+  "checkout_succeeded": true,
+  "scan_complete": true,
+  "findings": [
+    "generated-artifact-present",
+    "missing-health-check",
+    "readme-missing-usage",
+    "readme-missing-verification",
+    "missing-config-example",
+    "missing-favicon",
+    "missing-security-doc",
+    "readme-missing-limitations",
+    "readme-missing-requirements"
+  ],
+  "execution_error": null,
+  "verdict": "PASS_WITH_NOTES"
+}
