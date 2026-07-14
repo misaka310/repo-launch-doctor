@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import tomllib
 from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
@@ -71,7 +72,20 @@ def _detect_project_type(inventory: Inventory, config: DoctorConfig) -> str:
         return "docs"
 
     pyproject = _read_optional_text(inventory, "pyproject.toml")
-    if "[project.scripts]" in pyproject.casefold() or any(
+    pyproject_data: dict[str, object] = {}
+    if pyproject:
+        try:
+            parsed = tomllib.loads(pyproject)
+            if isinstance(parsed, dict):
+                pyproject_data = parsed
+        except tomllib.TOMLDecodeError:
+            pass
+    project_table = pyproject_data.get("project", {})
+    has_python_cli = isinstance(project_table, dict) and any(
+        isinstance(project_table.get(key), dict) and project_table[key]
+        for key in ("scripts", "gui-scripts")
+    )
+    if has_python_cli or any(
         path.endswith("/__main__.py") or path == "__main__.py"
         for path in lowered_paths
     ):

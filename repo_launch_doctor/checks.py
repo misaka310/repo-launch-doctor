@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import re
+import tomllib
+from configparser import ConfigParser, Error as ConfigParserError
 from collections import Counter
 from pathlib import Path
 from urllib.parse import unquote
@@ -81,6 +83,7 @@ RUNTIME_EXCLUDED_PREFIXES = (
     "test/",
     "tests/",
 )
+MARKDOWN_HEADING_RE = re.compile(r"^ {0,3}#{1,6}[ \t]+(?P<title>.+?)\s*#*\s*$")
 
 
 def _finding(
@@ -128,6 +131,30 @@ def _find_readme(texts: dict[str, str]) -> tuple[str, str] | None:
     return None
 
 
+def _readme_section_text(text: str) -> str:
+    """Use Markdown headings, never prose or fenced code, as section evidence."""
+    headings: list[str] = []
+    labels: list[str] = []
+    in_fence = False
+    nonempty = [line for line in text.splitlines() if line.strip()]
+    for line in text.splitlines():
+        if re.match(r"^\s*(```|~~~)", line):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        match = MARKDOWN_HEADING_RE.match(line)
+        if match:
+            headings.append(match.group("title"))
+        elif len(nonempty) <= 24 and re.match(
+            r"^\s*(requirements?|prerequisites?|setup|installation|usage|testing|tests?|verification|limitations?|必要条件|要件|セットアップ|導入|使い方|使用方法|検証|動作確認|制限事項|注意事項)\s*[:：]",
+            line,
+            re.IGNORECASE,
+        ):
+            labels.append(line)
+    return "\n".join((*headings, *labels)).casefold()
+
+
 def _check_readme(texts: dict[str, str]) -> list[Finding]:
     readme = _find_readme(texts)
     if readme is None:
@@ -143,7 +170,7 @@ def _check_readme(texts: dict[str, str]) -> list[Finding]:
         ]
 
     path, text = readme
-    lowered = text.casefold()
+    lowered = _readme_section_text(text)
     sections = {
         "requirements": ("requirements", "prerequisites", "必要", "要件"),
         "setup": ("setup", "install", "installation", "セットアップ", "導入"),
@@ -238,6 +265,46 @@ def _load_package_scripts(texts: dict[str, str]) -> dict[str, str]:
     return {str(key): value for key, value in scripts.items() if isinstance(value, str)}
 
 
+def _load_pyproject(texts: dict[str, str]) -> dict[str, object]:
+    raw = texts.get("pyproject.toml")
+    if raw is None:
+        return {}
+    try:
+        loaded = tomllib.loads(raw)
+    except tomllib.TOMLDecodeError:
+        return {}
+    return loaded if isinstance(loaded, dict) else {}
+
+
+def _python_script_commands(texts: dict[str, str]) -> list[str]:
+    data = _load_pyproject(texts)
+    commands: list[str] = []
+    project = data.get("project", {})
+    if isinstance(project, dict):
+        for key in ("scripts", "gui-scripts"):
+            scripts = project.get(key, {})
+            if isinstance(scripts, dict):
+                commands.extend(
+                    str(name)
+                    for name, value in scripts.items()
+                    if isinstance(value, str) and value.strip()
+                )
+    raw_setup_cfg = texts.get("setup.cfg")
+    if raw_setup_cfg:
+        parser = ConfigParser()
+        try:
+            parser.read_string(raw_setup_cfg)
+            if parser.has_section("options.entry_points"):
+                for key in ("console_scripts", "gui_scripts"):
+                    if parser.has_option("options.entry_points", key):
+                        for line in parser.get("options.entry_points", key).splitlines():
+                            if "=" in line:
+                                commands.append(line.split("=", 1)[0].strip())
+        except ConfigParserError:
+            pass
+    return sorted(set(command for command in commands if command))
+
+
 def _detect_start_commands(
     texts: dict[str, str], scripts: dict[str, str], config: DoctorConfig
 ) -> list[str]:
@@ -253,9 +320,52 @@ def _detect_start_commands(
     for name in ("start", "dev", "serve"):
         if name in scripts:
             commands.append("npm start" if name == "start" else f"npm run {name}")
+    commands.extend(_python_script_commands(texts))
+    for relative in texts:
+        normalized = relative.casefold()
+        if normalized.endswith("main.py") and not normalized.startswith(RUNTIME_EXCLUDED_PREFIXES):
+            commands.append(f"python {relative}")
     if config.project_type == "static-web" and "index.html" in texts:
         commands.append("open index.html")
     return sorted(set(commands))
+
+
+def _pytest_declared(texts: dict[str, str], pyproject: dict[str, object]) -> bool:
+    if "pytest.ini" in texts or any(Path(path).name == "conftest.py" for path in texts):
+        return True
+    tool = pyproject.get("tool", {})
+    if isinstance(tool, dict) and "pytest" in tool:
+        return True
+    project = pyproject.get("project", {})
+    dependencies: list[object] = []
+    if isinstance(project, dict):
+        declared = project.get("dependencies", [])
+        if isinstance(declared, list):
+            dependencies.extend(declared)
+        optional = project.get("optional-dependencies", {})
+        if isinstance(optional, dict):
+            for values in optional.values():
+                if isinstance(values, list):
+                    dependencies.extend(values)
+    return any(
+        isinstance(value, str)
+        and re.match(r"^pytest(?:[<>=!~ ;]|$)", value.strip(), re.IGNORECASE)
+        for value in dependencies
+    )
+
+
+def _unittest_declared(texts: dict[str, str]) -> bool:
+    return any(
+        path.endswith(".py")
+        and path.startswith(("tests/", "test/"))
+        and (
+            "unittest.TestCase" in text
+            or "unittest.main(" in text
+            or "from unittest" in text
+            or "import unittest" in text
+        )
+        for path, text in texts.items()
+    )
 
 
 def _detect_verification_commands(
@@ -266,21 +376,16 @@ def _detect_verification_commands(
         if name in scripts:
             commands.append("npm test" if name == "test" else f"npm run {name}")
 
-    has_python_tests = any(
-        path.startswith("tests/") and path.endswith(".py") for path in texts
-    )
-    if has_python_tests:
-        commands.append("python -m unittest discover -s tests")
-
-    pyproject = texts.get("pyproject.toml", "")
-    pytest_declared = (
-        "pytest.ini" in texts
-        or "conftest.py" in texts
-        or "[tool.pytest" in pyproject.casefold()
-        or re.search(r"\bpytest\b", pyproject, re.IGNORECASE) is not None
-    )
-    if pytest_declared:
+    pyproject = _load_pyproject(texts)
+    tool = pyproject.get("tool", {})
+    if "tox.ini" in texts or (isinstance(tool, dict) and "tox" in tool):
+        commands.append("tox")
+    if "noxfile.py" in texts:
+        commands.append("nox")
+    if _pytest_declared(texts, pyproject):
         commands.append("python -m pytest")
+    if _unittest_declared(texts):
+        commands.append("python -m unittest discover -s tests")
     return sorted(set(commands))
 
 

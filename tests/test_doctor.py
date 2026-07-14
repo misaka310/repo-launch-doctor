@@ -14,6 +14,7 @@ from repo_launch_doctor.config import load_config
 from repo_launch_doctor.models import Finding, ScanReport
 from repo_launch_doctor.reporters import render_html
 from repo_launch_doctor.scanner import scan_repository
+from repo_launch_doctor.schema import validate_report_payload
 
 
 class RepoLaunchDoctorTests(unittest.TestCase):
@@ -50,6 +51,18 @@ class RepoLaunchDoctorTests(unittest.TestCase):
         )
         self.assertEqual(report.verdict, "INCOMPLETE")
         self.assertIsNone(report.score)
+
+    def test_generated_report_conforms_to_report_v1_schema_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_healthy_repository(root)
+            report = scan_repository(root)
+            self.assertEqual(validate_report_payload(report.to_dict()), [])
+            incomplete = report.to_dict()
+            incomplete["verdict"] = "INCOMPLETE"
+            incomplete["score"] = None
+            incomplete["metadata"]["scan_complete"] = False
+            self.assertEqual(validate_report_payload(incomplete), [])
 
     def test_config_loads_defaults_and_overrides(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -408,10 +421,120 @@ class RepoLaunchDoctorTests(unittest.TestCase):
             self.assertNotIn(
                 "python -m pytest", report.metadata["verification_commands"]
             )
-            self.assertIn(
+            self.assertNotIn(
                 "python -m unittest discover -s tests",
                 report.metadata["verification_commands"],
             )
+
+    def test_pyproject_scripts_are_python_cli_entrypoints(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "pyproject.toml").write_text(
+                '[project]\nname="sample"\nversion="0.1"\n[project.scripts]\nsample = "sample.cli:main"\n',
+                encoding="utf-8",
+            )
+            report = scan_repository(root)
+            self.assertEqual(report.metadata["project_type"], "cli")
+            self.assertIn("sample", report.metadata["start_commands"])
+            self.assertNotIn("missing-start-entrypoint", {f.check_id for f in report.findings})
+
+    def test_pyproject_gui_scripts_are_entrypoints(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "pyproject.toml").write_text(
+                '[project]\nname="sample"\nversion="0.1"\n[project.gui-scripts]\nsample-gui = "sample.app:main"\n',
+                encoding="utf-8",
+            )
+            report = scan_repository(root)
+            self.assertIn("sample-gui", report.metadata["start_commands"])
+
+    def test_broken_pyproject_does_not_create_a_phantom_cli(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "pyproject.toml").write_text("[project.scripts\nbroken", encoding="utf-8")
+            report = scan_repository(root)
+            self.assertNotIn("broken", report.metadata["start_commands"])
+
+    def test_empty_pyproject_scripts_table_is_not_an_entrypoint(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "pyproject.toml").write_text("[project]\nname='x'\n[project.scripts]\n", encoding="utf-8")
+            report = scan_repository(root)
+            self.assertIn("missing-start-entrypoint", {f.check_id for f in report.findings})
+            self.assertEqual(report.metadata["start_commands"], [])
+
+    def test_multiple_python_cli_commands_are_collected(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "pyproject.toml").write_text(
+                "[project]\nname='x'\n[project.scripts]\nalpha='x:main'\nbeta='x:main'\n",
+                encoding="utf-8",
+            )
+            report = scan_repository(root)
+            self.assertEqual({"alpha", "beta"}, set(report.metadata["start_commands"]))
+
+    def test_pytest_repository_does_not_suggest_unittest(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "run.bat").write_text("@echo off\n", encoding="utf-8")
+            (root / "tests").mkdir()
+            (root / "tests" / "test_example.py").write_text("def test_ok(): pass\n", encoding="utf-8")
+            (root / "pytest.ini").write_text("[pytest]\n", encoding="utf-8")
+            report = scan_repository(root)
+            self.assertIn("python -m pytest", report.metadata["verification_commands"])
+            self.assertNotIn("python -m unittest discover -s tests", report.metadata["verification_commands"])
+
+    def test_unittest_repository_is_detected(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "run.bat").write_text("@echo off\n", encoding="utf-8")
+            (root / "tests").mkdir()
+            (root / "tests" / "test_example.py").write_text("import unittest\nclass T(unittest.TestCase): pass\n", encoding="utf-8")
+            report = scan_repository(root)
+            self.assertIn("python -m unittest discover -s tests", report.metadata["verification_commands"])
+
+    def test_mixed_python_test_frameworks_are_both_reported(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "run.bat").write_text("@echo off\n", encoding="utf-8")
+            (root / "tests").mkdir()
+            (root / "tests" / "test_example.py").write_text("import unittest\nclass T(unittest.TestCase): pass\n", encoding="utf-8")
+            (root / "conftest.py").write_text("", encoding="utf-8")
+            report = scan_repository(root)
+            self.assertTrue({"python -m pytest", "python -m unittest discover -s tests"}.issubset(report.metadata["verification_commands"]))
+
+    def test_unknown_python_tests_do_not_produce_a_guessed_command(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "run.bat").write_text("@echo off\n", encoding="utf-8")
+            (root / "tests").mkdir()
+            (root / "tests" / "test_example.py").write_text("def check(): pass\n", encoding="utf-8")
+            report = scan_repository(root)
+            self.assertFalse(any(command.startswith("python -m") for command in report.metadata["verification_commands"]))
+
+    def test_readme_words_in_prose_or_code_do_not_count_as_sections(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / "README.md").write_text("# Sample\n\nThis mentions test and 注意 only.\n```md\n## Setup\n```\n", encoding="utf-8")
+            findings = {f.check_id for f in scan_repository(root).findings}
+            self.assertIn("readme-missing-setup", findings)
+            self.assertIn("readme-missing-verification", findings)
+
+    def test_japanese_readme_headings_are_recognized(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / "README.md").write_text("# Sample\n## 要件\n## セットアップ\n## 使い方\n## 動作確認\n## 制限事項\n", encoding="utf-8")
+            findings = {f.check_id for f in scan_repository(root).findings}
+            self.assertFalse(any(item.startswith("readme-missing-") for item in findings))
 
     def test_scan_healthy_repository(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

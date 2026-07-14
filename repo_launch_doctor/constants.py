@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 SCHEMA_VERSION = "1.0"
-PACKAGE_VERSION = "0.2.0"
+PACKAGE_VERSION = "0.3.0"
 
 SEVERITY_ORDER = {"BLOCKER": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3, "INFO": 4}
 SEVERITY_WEIGHTS = {"BLOCKER": 40, "HIGH": 20, "MEDIUM": 8, "LOW": 2, "INFO": 0}
