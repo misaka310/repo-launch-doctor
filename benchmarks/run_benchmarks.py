@@ -16,6 +16,7 @@ ROOT = Path(__file__).parents[1]
 CACHE = ROOT / ".benchmark-cache"
 RESULTS = Path(__file__).with_name("results")
 TARGETS = RESULTS / "targets"
+CACHE_TARGETS = CACHE / "results" / "targets"
 FETCH_TIMEOUT, CHECKOUT_TIMEOUT, SCAN_TIMEOUT = 180, 60, 180
 sys.path.insert(0, str(ROOT))
 from repo_launch_doctor import __version__  # noqa: E402
@@ -78,9 +79,16 @@ def _validate_manifest(manifest: dict[str, Any]) -> list[str]:
 
 
 def _cached_target(item: dict[str, Any], force: bool) -> dict[str, Any] | None:
-    path = TARGETS / f"{_slug(item)}.json"
+    path = CACHE_TARGETS / f"{_slug(item)}.json"
     existing = _read_json(path)
-    if not force and existing and existing.get("repository") == item["repository"] and existing.get("commit") == item["commit"]:
+    if (
+        not force
+        and existing
+        and existing.get("repository") == item["repository"]
+        and existing.get("commit") == item["commit"]
+        and existing.get("fetch_succeeded") is True
+        and existing.get("scan_complete") is True
+    ):
         return existing
     return None
 
@@ -90,14 +98,20 @@ def _run_target(item: dict[str, Any]) -> dict[str, Any]:
     repository = CACHE / "repositories" / slug
     scan_output = CACHE / "scans" / slug
     result: dict[str, Any] = {"repository": item["repository"], "commit": item["commit"], "project_type": item["project_type"], "labels": item["checks"], "fetch_succeeded": False, "scan_complete": False, "findings": [], "execution_error": None}
-    if not repository.exists():
-        code, _, stderr, timed_out = _run(["git", "clone", "--no-checkout", item["repository"], str(repository)], FETCH_TIMEOUT)
+    if not (repository / ".git").exists():
+        if repository.exists(): shutil.rmtree(repository)
+        code, _, stderr, timed_out = _run(["git", "-c", "protocol.version=2", "init", str(repository)], CHECKOUT_TIMEOUT)
         if code:
-            result["execution_error"] = _error("clone", stderr, timed_out); return result
-    code, _, stderr, timed_out = _run(["git", "-C", str(repository), "fetch", "--depth", "1", "origin", item["commit"]], FETCH_TIMEOUT)
+            result["execution_error"] = _error("init", stderr, timed_out); return result
+        code, _, stderr, timed_out = _run(["git", "-C", str(repository), "remote", "add", "origin", item["repository"]], CHECKOUT_TIMEOUT)
+        if code:
+            result["execution_error"] = _error("remote", stderr, timed_out); return result
+    else:
+        _run(["git", "-C", str(repository), "remote", "set-url", "origin", item["repository"]], CHECKOUT_TIMEOUT)
+    code, _, stderr, timed_out = _run(["git", "-c", "protocol.version=2", "-C", str(repository), "fetch", "--depth=1", "--no-tags", "origin", item["commit"]], FETCH_TIMEOUT)
     if code:
         result["execution_error"] = _error("fetch", stderr, timed_out); return result
-    code, _, stderr, timed_out = _run(["git", "-C", str(repository), "checkout", "--detach", "--force", item["commit"]], CHECKOUT_TIMEOUT)
+    code, _, stderr, timed_out = _run(["git", "-C", str(repository), "checkout", "--detach", "--force", "FETCH_HEAD"], CHECKOUT_TIMEOUT)
     if code:
         result["execution_error"] = _error("checkout", stderr, timed_out); return result
     result["fetch_succeeded"] = True
@@ -159,7 +173,8 @@ def main(argv: list[str] | None = None) -> int:
     for item in items:
         row = _cached_target(item, args.force) if args.resume else None
         row = row or _run_target(item)
-        _write_json_atomic(TARGETS / f"{_slug(item)}.json", row)
+        row["generated_at"] = datetime.now(timezone.utc).isoformat()
+        _write_json_atomic(CACHE_TARGETS / f"{_slug(item)}.json", row)
         rows.append(row)
     eligible = sum(row["fetch_succeeded"] and row["scan_complete"] for row in rows)
     payload: dict[str, Any] = {"generated_at": datetime.now(timezone.utc).isoformat(), "tool_version": __version__, "targets": len(items), "fetch_succeeded": sum(row["fetch_succeeded"] for row in rows), "fetch_failed": sum(not row["fetch_succeeded"] for row in rows), "scan_completed": sum(row["scan_complete"] for row in rows), "scan_incomplete": sum(row["fetch_succeeded"] and not row["scan_complete"] for row in rows), "eligible_for_metrics": eligible, "results": rows}
@@ -169,8 +184,13 @@ def main(argv: list[str] | None = None) -> int:
     payload["false_positives"] = [row for row in rows if row["fetch_succeeded"] and row["scan_complete"] and any(not expected and check in row["findings"] for check, expected in row["labels"].items())]
     payload["false_negatives"] = [row for row in rows if row["fetch_succeeded"] and row["scan_complete"] and any(expected and check not in row["findings"] for check, expected in row["labels"].items())]
     payload["execution_errors"] = [row for row in rows if row["execution_error"]]
-    _write_json_atomic(RESULTS / "latest.json", payload)
-    (RESULTS / "latest.md").write_text(_render_markdown(payload), encoding="utf-8")
+    _write_json_atomic(CACHE / "results" / "aggregate.json", payload)
+    if payload["complete_run"]:
+        _write_json_atomic(RESULTS / "latest.json", payload)
+        TARGETS.mkdir(parents=True, exist_ok=True)
+        for row in rows:
+            shutil.copyfile(CACHE_TARGETS / f"{_slug(row)}.json", TARGETS / f"{_slug(row)}.json")
+        (RESULTS / "latest.md").write_text(_render_markdown(payload), encoding="utf-8")
     return 0 if payload["complete_run"] or args.allow_partial else 1
 
 
