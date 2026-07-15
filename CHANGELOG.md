@@ -18,6 +18,9 @@
 - Recognize .NET libraries, Maven aggregators, and explicitly described library/framework/documentation collections so non-app repositories are not required to provide an application launcher.
 - Recognize concrete README verification commands and manual playground/preview procedures without requiring an exact `Testing` heading.
 - Skip additional known binary asset formats during text inspection instead of marking otherwise complete scans as unreadable.
+- Extend the current public-repository audit to instance-level secret-file, generated-artifact, and broken-Markdown-link review while withholding sensitive disclosure details from public artifacts.
+- Reduce secret-file false positives by distinguishing auth-bearing `.npmrc`/`.pypirc` and sensitive non-template `.env.*` assignments from public configuration and deployment templates.
+- Detect tracked IDE/OS metadata, avoid treating source/config directories named `build` as generated output, and ignore Markdown links inside code examples, URI schemes, extensionless site routes, and duplicate source-target pairs.
 
 ## 0.2.0
 

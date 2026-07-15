@@ -170,6 +170,113 @@ class RepoLaunchDoctorTests(unittest.TestCase):
                 )
             )
 
+    def test_tracked_npmrc_without_auth_is_not_treated_as_secret(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_healthy_repository(root)
+            (root / ".npmrc").write_text(
+                "registry=https://registry.npmjs.org/\nengine-strict=true\n",
+                encoding="utf-8",
+            )
+            self._git(root, "init")
+            self._git(root, "add", ".")
+
+            report = scan_repository(root)
+
+            self.assertFalse(
+                any(
+                    finding.check_id == "secret-risk-file"
+                    and finding.path == ".npmrc"
+                    for finding in report.findings
+                ),
+                report.findings,
+            )
+
+    def test_tracked_npmrc_with_auth_assignment_is_secret(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_healthy_repository(root)
+            auth_key = "//registry.npmjs.org/:_auth" + "Token"
+            value = "local-package-credential"
+            (root / ".npmrc").write_text(f"{auth_key}={value}\n", encoding="utf-8")
+            self._git(root, "init")
+            self._git(root, "add", ".")
+
+            report = scan_repository(root)
+
+            finding = next(
+                finding
+                for finding in report.findings
+                if finding.check_id == "secret-risk-file" and finding.path == ".npmrc"
+            )
+            self.assertEqual("BLOCKER", finding.severity)
+            self.assertNotIn(value, finding.evidence)
+
+    def test_tracked_mode_env_without_sensitive_assignment_is_not_secret(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_healthy_repository(root)
+            (root / ".env.production").write_text(
+                "PUBLIC_BASE_URL=https://example.invalid\nFEATURE_ENABLED=true\nTOKEN_EXPIRATION=3600\n",
+                encoding="utf-8",
+            )
+            self._git(root, "init")
+            self._git(root, "add", ".")
+
+            report = scan_repository(root)
+
+            self.assertFalse(
+                any(
+                    finding.check_id == "secret-risk-file"
+                    and finding.path == ".env.production"
+                    for finding in report.findings
+                ),
+                report.findings,
+            )
+
+    def test_tracked_mode_env_with_sensitive_assignment_is_secret(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_healthy_repository(root)
+            key = "AUTH_CLIENT_" + "SECRET"
+            value = "local-development-credential"
+            (root / ".env.development").write_text(f"{key}={value}\n", encoding="utf-8")
+            self._git(root, "init")
+            self._git(root, "add", ".")
+
+            report = scan_repository(root)
+
+            finding = next(
+                finding
+                for finding in report.findings
+                if finding.check_id == "secret-risk-file"
+                and finding.path == ".env.development"
+            )
+            self.assertEqual("BLOCKER", finding.severity)
+            self.assertNotIn(value, finding.evidence)
+
+    def test_tracked_env_template_expression_is_not_secret(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_healthy_repository(root)
+            template = root / "deploy" / ".env.j2"
+            template.parent.mkdir()
+            key = "DB_" + "PASSWORD"
+            template.write_text(f"{key}={{{{ database_password }}}}\n", encoding="utf-8")
+            self._git(root, "init")
+            self._git(root, "add", ".")
+
+            report = scan_repository(root)
+
+            self.assertFalse(
+                any(
+                    finding.check_id == "secret-risk-file"
+                    and finding.path == "deploy/.env.j2"
+                    for finding in report.findings
+                ),
+                report.findings,
+            )
+
     def test_gitignore_fallback_works_without_git_repository(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -304,6 +411,139 @@ class RepoLaunchDoctorTests(unittest.TestCase):
                 and item.path == "build"
             )
             self.assertEqual(finding.severity, "MEDIUM")
+
+    def test_tracked_idea_and_ds_store_are_generated_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_healthy_repository(root)
+            idea = root / ".idea"
+            idea.mkdir()
+            (idea / "modules.xml").write_text("<project/>\n", encoding="utf-8")
+            (root / ".DS_Store").write_bytes(b"local metadata")
+            self._git(root, "init")
+            self._git(root, "add", ".")
+
+            report = scan_repository(root)
+            generated_paths = {
+                finding.path
+                for finding in report.findings
+                if finding.check_id == "generated-artifact-present"
+            }
+
+            self.assertIn(".idea", generated_paths)
+            self.assertIn(".DS_Store", generated_paths)
+
+    def test_source_build_directories_are_not_generated_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_healthy_repository(root)
+            source_build = root / "build" / "config"
+            source_build.mkdir(parents=True)
+            (source_build / "index.ts").write_text("export const value = 1;\n", encoding="utf-8")
+            action = root / ".github" / "actions" / "build"
+            action.mkdir(parents=True)
+            (action / "action.yml").write_text("name: Build action\n", encoding="utf-8")
+            props = root / "src" / "build"
+            props.mkdir(parents=True)
+            (props / "Project.props").write_text("<Project/>\n", encoding="utf-8")
+            self._git(root, "init")
+            self._git(root, "add", ".")
+
+            report = scan_repository(root)
+
+            self.assertFalse(
+                any(
+                    finding.check_id == "generated-artifact-present"
+                    and finding.path in {"build", ".github/actions/build", "src/build"}
+                    for finding in report.findings
+                ),
+                report.findings,
+            )
+
+    def test_markdown_code_examples_uri_and_site_routes_are_not_local_links(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_healthy_repository(root)
+            (root / "README.md").write_text(
+                """# App
+
++## Requirements
++
++Python 3.11.
++
++## Setup
++
++No installation.
++
++## Usage
++
++Use [the docs](/getting-started).
++
++Inline examples: `![alt](address)` and `[blank](about:blank)`.
++
++```go
++type Item[data T] struct{}
++```
++
++## Verification
++
++Run the tests.
++
++## Limitations
++
++Static inspection only.
++""".replace("\n+", "\n"),
+                encoding="utf-8",
+            )
+
+            report = scan_repository(root)
+
+            self.assertFalse(
+                any(
+                    finding.check_id in {"broken-markdown-link", "markdown-link-outside-root"}
+                    for finding in report.findings
+                ),
+                report.findings,
+            )
+
+    def test_root_relative_markdown_file_is_checked(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_healthy_repository(root)
+            (root / "README.md").write_text(
+                "# App\n\n![Missing image](/assets/missing.png)\n",
+                encoding="utf-8",
+            )
+
+            report = scan_repository(root)
+
+            self.assertTrue(
+                any(
+                    finding.check_id == "broken-markdown-link"
+                    and finding.path == "README.md"
+                    for finding in report.findings
+                ),
+                report.findings,
+            )
+
+    def test_real_missing_markdown_link_is_reported_once(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_healthy_repository(root)
+            (root / "README.md").write_text(
+                "# App\n\n[Missing](docs/missing.md)\n[Missing again](docs/missing.md)\n",
+                encoding="utf-8",
+            )
+
+            report = scan_repository(root)
+            findings = [
+                finding
+                for finding in report.findings
+                if finding.check_id == "broken-markdown-link"
+                and finding.path == "README.md"
+            ]
+
+            self.assertEqual(1, len(findings))
 
     def test_hidden_dependency_directory_is_excluded_from_content_reading(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

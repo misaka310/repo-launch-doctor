@@ -1,8 +1,8 @@
 # Current public-repository audit
 
 Selection completed: 2026-07-14T18:37:01.341101+00:00
-All scan attempts completed: 2026-07-15T01:06:16.500687+00:00
-Manual review completed: 2026-07-15T01:06:39.947301+00:00
+All scan attempts completed: 2026-07-15T03:32:28.024509+00:00
+Manual review completed: 2026-07-15T03:32:58.626107+00:00
 Tool version: 0.3.0
 Selected / eligible / excluded: 30 / 29 / 1
 
@@ -55,7 +55,7 @@ This is a stratified snapshot of 30 small, recently pushed public repositories a
 - Commit: `1549826fcec45120a78bfdd31c962d7a4a481c76`
 - Language bucket: Python
 - Doctor project type: `auto`
-- Doctor findings: `['generated-artifact-present', 'generated-artifact-present', 'generated-artifact-present', 'missing-license', 'readme-missing-setup', 'readme-missing-usage', 'readme-missing-verification', 'missing-config-example', 'missing-security-doc', 'readme-missing-limitations', 'readme-missing-requirements']`
+- Doctor findings: `['generated-artifact-present', 'generated-artifact-present', 'generated-artifact-present', 'generated-artifact-present', 'missing-license', 'readme-missing-setup', 'readme-missing-usage', 'readme-missing-verification', 'missing-config-example', 'missing-security-doc', 'readme-missing-limitations', 'readme-missing-requirements']`
 - `missing-start-entrypoint` label: `false` — This is a collection of Python course examples rather than one application that requires a repository-level launcher.
 - `readme-missing-verification` label: `true` — The README contains course notes but no concrete verification guidance.
 
@@ -91,7 +91,7 @@ This is a stratified snapshot of 30 small, recently pushed public repositories a
 - Commit: `ddcabc331a5960c60e599c4aef062652ac0a91c4`
 - Language bucket: JavaScript
 - Doctor project type: `library`
-- Doctor findings: `['broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'missing-config-example', 'missing-security-doc', 'readme-missing-limitations', 'readme-missing-requirements']`
+- Doctor findings: `['broken-markdown-link', 'missing-config-example', 'missing-security-doc', 'readme-missing-limitations', 'readme-missing-requirements']`
 - `missing-start-entrypoint` label: `false` — This is a JavaScript library, so an application launcher is not expected.
 - `readme-missing-verification` label: `false` — The README Development section explicitly documents npm test and npm run lint.
 
@@ -118,7 +118,7 @@ This is a stratified snapshot of 30 small, recently pushed public repositories a
 - Commit: `c41981c0b9f65792b38044db3393028a3ef65bae`
 - Language bucket: TypeScript
 - Doctor project type: `web`
-- Doctor findings: `['secret-risk-file', 'missing-health-check', 'missing-license', 'readme-missing-usage', 'readme-missing-verification', 'missing-config-example', 'missing-favicon', 'missing-security-doc', 'readme-missing-limitations', 'readme-missing-requirements']`
+- Doctor findings: `['missing-health-check', 'missing-license', 'readme-missing-usage', 'readme-missing-verification', 'missing-config-example', 'missing-favicon', 'missing-security-doc', 'readme-missing-limitations', 'readme-missing-requirements']`
 - `missing-start-entrypoint` label: `false` — The package scripts provide Vite and Tauri development commands.
 - `readme-missing-verification` label: `true` — The README contains IDE setup only and does not document tests or verification commands.
 
@@ -127,7 +127,7 @@ This is a stratified snapshot of 30 small, recently pushed public repositories a
 - Commit: `37808f6b5f2932dd465da3e4c53276286ee93e2b`
 - Language bucket: TypeScript
 - Doctor project type: `static-web`
-- Doctor findings: `['missing-favicon', 'missing-security-doc', 'readme-missing-limitations', 'readme-missing-requirements']`
+- Doctor findings: `['generated-artifact-present', 'missing-favicon', 'missing-security-doc', 'readme-missing-limitations', 'readme-missing-requirements']`
 - `missing-start-entrypoint` label: `false` — This is a React component library; it does not require an application launcher, and it also exposes a playground command.
 - `readme-missing-verification` label: `false` — The README explicitly describes npm run playground as the local development and manual-testing path.
 
@@ -136,7 +136,7 @@ This is a stratified snapshot of 30 small, recently pushed public repositories a
 - Commit: `95e85e3f489ea23bbbe41b67093cfc2c9536edd6`
 - Language bucket: TypeScript
 - Doctor project type: `web`
-- Doctor findings: `['secret-risk-file', 'secret-risk-file', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'generated-artifact-present', 'missing-favicon', 'readme-missing-limitations']`
+- Doctor findings: `['missing-favicon', 'readme-missing-limitations']`
 - `missing-start-entrypoint` label: `false` — The README provides pnpm dev and the package declares development commands.
 - `readme-missing-verification` label: `false` — The README lists pnpm check, pnpm check:ci, unit, E2E, lint, and typecheck quality gates.
 
@@ -145,7 +145,7 @@ This is a stratified snapshot of 30 small, recently pushed public repositories a
 - Commit: `cc8903b013a53ead4faa344dfc3910c72020716b`
 - Language bucket: TypeScript
 - Doctor project type: `web`
-- Doctor findings: `['secret-risk-file', 'secret-risk-file', 'readme-missing-setup', 'readme-missing-usage', 'readme-missing-verification', 'missing-config-example', 'missing-favicon', 'missing-security-doc', 'readme-missing-limitations', 'readme-missing-requirements']`
+- Doctor findings: `['secret-risk-file', 'readme-missing-setup', 'readme-missing-usage', 'readme-missing-verification', 'missing-config-example', 'missing-favicon', 'missing-security-doc', 'readme-missing-limitations', 'readme-missing-requirements']`
 - `missing-start-entrypoint` label: `false` — The README provides bun run dev and the package declares dev and start scripts.
 - `readme-missing-verification` label: `true` — The README documents startup but no test or verification command.
 
@@ -154,7 +154,7 @@ This is a stratified snapshot of 30 small, recently pushed public repositories a
 - Commit: `e0e3e0ac6c513f56241e612290fa7e24606acd76`
 - Language bucket: TypeScript
 - Doctor project type: `web`
-- Doctor findings: `['markdown-link-outside-root', 'markdown-link-outside-root', 'missing-health-check', 'readme-missing-usage', 'missing-config-example', 'missing-favicon', 'missing-security-doc', 'readme-missing-limitations']`
+- Doctor findings: `['markdown-link-outside-root', 'missing-health-check', 'readme-missing-usage', 'missing-config-example', 'missing-favicon', 'missing-security-doc', 'readme-missing-limitations']`
 - `missing-start-entrypoint` label: `false` — The README provides npm run dev and npm run start.
 - `readme-missing-verification` label: `false` — The README lists build, lint, and typecheck commands as concrete quality checks.
 
@@ -172,7 +172,7 @@ This is a stratified snapshot of 30 small, recently pushed public repositories a
 - Commit: `eb885d352da5889430c217735f0ae34ca726fee0`
 - Language bucket: Go
 - Doctor project type: `auto`
-- Doctor findings: `['broken-markdown-link', 'missing-config-example', 'missing-security-doc', 'readme-missing-limitations', 'readme-missing-requirements']`
+- Doctor findings: `['missing-config-example', 'missing-security-doc', 'readme-missing-limitations', 'readme-missing-requirements']`
 - `missing-start-entrypoint` label: `false` — The README documents both the oc-agentic CLI entrypoint and make run for the operator.
 - `readme-missing-verification` label: `false` — The README Testing section documents make test, make test-e2e, and targeted go test commands.
 
@@ -226,7 +226,7 @@ This is a stratified snapshot of 30 small, recently pushed public repositories a
 - Commit: `1cf730a87312b867be6bb895f164061acd83e8b8`
 - Language bucket: C#
 - Doctor project type: `auto`
-- Doctor findings: `['broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'markdown-link-outside-root', 'readme-missing-setup', 'readme-missing-usage', 'readme-missing-limitations']`
+- Doctor findings: `['broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'readme-missing-setup', 'readme-missing-usage', 'readme-missing-limitations']`
 - `missing-start-entrypoint` label: `false` — The README documents build.bat run and dotnet run --project QuickMail.
 - `readme-missing-verification` label: `false` — The README provides a build command and states that every push and pull request is built in GitHub Actions.
 
@@ -244,7 +244,7 @@ This is a stratified snapshot of 30 small, recently pushed public repositories a
 - Commit: `cb1d80a6268239f742b50dcd9065efe370b5e202`
 - Language bucket: C#
 - Doctor project type: `auto`
-- Doctor findings: `['secret-risk-file', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'broken-markdown-link', 'generated-artifact-present', 'markdown-link-outside-root', 'readme-missing-setup', 'readme-missing-usage', 'readme-missing-verification', 'readme-missing-limitations', 'readme-missing-requirements']`
+- Doctor findings: `['secret-risk-file', 'broken-markdown-link', 'broken-markdown-link', 'markdown-link-outside-root', 'readme-missing-setup', 'readme-missing-usage', 'readme-missing-verification', 'readme-missing-limitations', 'readme-missing-requirements']`
 - `missing-start-entrypoint` label: `false` — The repository is a containerized application and its Dockerfile declares the executable ENTRYPOINT and health check.
 - `readme-missing-verification` label: `true` — The README shows build-status badges but gives no reproducible local test or verification procedure.
 
@@ -253,7 +253,7 @@ This is a stratified snapshot of 30 small, recently pushed public repositories a
 - Commit: `cf37bca75d8b41c41ace50f8debb4128f62fd346`
 - Language bucket: Java
 - Doctor project type: `auto`
-- Doctor findings: `['missing-start-entrypoint', 'readme-missing-setup', 'readme-missing-usage', 'readme-missing-verification', 'missing-security-doc', 'readme-missing-limitations', 'readme-missing-requirements']`
+- Doctor findings: `['missing-start-entrypoint', 'generated-artifact-present', 'readme-missing-setup', 'readme-missing-usage', 'readme-missing-verification', 'missing-security-doc', 'readme-missing-limitations', 'readme-missing-requirements']`
 - `missing-start-entrypoint` label: `true` — This is an Android application, but the README gives no build, install, run, or Android Studio launch guidance; the generic Gradle wrapper alone is not a clear user entrypoint.
 - `readme-missing-verification` label: `true` — The README contains only a description and license, with no verification procedure.
 
@@ -271,7 +271,7 @@ This is a stratified snapshot of 30 small, recently pushed public repositories a
 - Commit: `b4faca9a87de91680387b2890bec8cfee7dd3924`
 - Language bucket: Java
 - Doctor project type: `static-web`
-- Doctor findings: `['secret-risk-file', 'broken-markdown-link', 'missing-license', 'missing-favicon', 'missing-security-doc', 'readme-missing-limitations']`
+- Doctor findings: `['broken-markdown-link', 'generated-artifact-present', 'missing-license', 'missing-favicon', 'missing-security-doc', 'readme-missing-limitations']`
 - `missing-start-entrypoint` label: `false` — The README provides Docker Compose startup and complete per-service local launch commands.
 - `readme-missing-verification` label: `false` — The README contains a Testing Strategy section and additional subsystem testing guidance.
 
@@ -289,6 +289,6 @@ This is a stratified snapshot of 30 small, recently pushed public repositories a
 - Commit: `1561962058417ff95e3a22eb976106020ddf6520`
 - Language bucket: Java
 - Doctor project type: `auto`
-- Doctor findings: `['secret-risk-file', 'secret-risk-file', 'secret-risk-file', 'readme-missing-setup', 'readme-missing-usage', 'readme-missing-verification', 'missing-config-example', 'missing-security-doc', 'readme-missing-limitations', 'readme-missing-requirements']`
+- Doctor findings: `['secret-risk-file', 'secret-risk-file', 'secret-risk-file', 'generated-artifact-present', 'readme-missing-setup', 'readme-missing-usage', 'readme-missing-verification', 'missing-config-example', 'missing-security-doc', 'readme-missing-limitations', 'readme-missing-requirements']`
 - `missing-start-entrypoint` label: `false` — The repository provides start-service.sh, odilon.bat, installers, and linked platform installation instructions.
 - `readme-missing-verification` label: `true` — The README documents operation and examples but no test or verification procedure.

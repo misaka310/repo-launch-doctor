@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "result_kind": "before extended-audit fixes",
+  "generated_at": "2026-07-15T03:33:58.960705+00:00",
+  "selected_at": "2026-07-14T18:37:01.341101+00:00",
+  "scan_completed_at": "2026-07-15T03:32:28.024509+00:00",
+  "reviewed_at": "2026-07-15T03:33:58.959704+00:00",
+  "selected_targets": 30,
+  "eligible_targets": 29,
+  "excluded_targets": 1,
+  "unit": "individual warning instance (repository + path, or repository + Markdown source + target)",
+  "metrics": {
+    "secret-risk-file": {
+      "actual_positive_instances": 5,
+      "TP": 5,
+      "FP": 5,
+      "FN": 0,
+      "precision": 0.5,
+      "recall": 1.0,
+      "TN": null,
+      "tn_note": "TN is not reported because the universe of possible file/link instances is not finite or enumerated."
+    },
+    "generated-artifact-present": {
+      "actual_positive_instances": 9,
+      "TP": 3,
+      "FP": 3,
+      "FN": 6,
+      "precision": 0.5,
+      "recall": 0.3333333333333333,
+      "TN": null,
+      "tn_note": "TN is not reported because the universe of possible file/link instances is not finite or enumerated."
+    },
+    "broken-markdown-link": {
+      "actual_positive_instances": 58,
+      "TP": 58,
+      "FP": 27,
+      "FN": 0,
+      "precision": 0.6823529411764706,
+      "recall": 1.0,
+      "TN": null,
+      "tn_note": "TN is not reported because the universe of possible file/link instances is not finite or enumerated."
+    }
+  },
+  "scope_limitations": [
+    "The repositories are the same selected current snapshot used by the main current audit.",
+    "Secret review covers Doctor's sensitive-file scope plus a bounded independent scan for common credential patterns; it is not a full secret scanner.",
+    "Runtime validity, exploitability, and whether a committed development certificate is used in production were not tested.",
+    "TN is intentionally omitted for instance-level checks because the negative instance universe is not enumerated."
+  ]
+}

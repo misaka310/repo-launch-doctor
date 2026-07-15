@@ -57,6 +57,32 @@ The remaining verification false negative is a repository with no README. Doctor
 
 These figures describe only this 29-repository eligible snapshot. They do not establish universal accuracy, runtime correctness, or the prevalence of repository problems across GitHub.
 
+## Extended instance-level audit
+
+The same completed 29-repository snapshot was also reviewed for individual `secret-risk-file`, `generated-artifact-present`, and `broken-markdown-link` instances. Labels were assigned per path or per Markdown source/target pair, rather than treating a whole repository as one result.
+
+### Before fixes discovered by the extended review
+
+| Check | Actual issues | TP | FP | FN | Precision | Recall |
+|---|---:|---:|---:|---:|---:|---:|
+| `secret-risk-file` | 5 | 5 | 5 | 0 | 0.5000 | 1.0000 |
+| `generated-artifact-present` | 9 | 3 | 3 | 6 | 0.5000 | 0.3333 |
+| `broken-markdown-link` | 58 | 58 | 27 | 0 | 0.6824 | 1.0000 |
+
+### After fixes, using the same repositories and labels
+
+| Check | Actual issues | TP | FP | FN | Precision | Recall |
+|---|---:|---:|---:|---:|---:|---:|
+| `secret-risk-file` | 5 | 5 | 0 | 0 | 1.0000 | 1.0000 |
+| `generated-artifact-present` | 9 | 9 | 0 | 0 | 1.0000 | 1.0000 |
+| `broken-markdown-link` | 58 | 58 | 0 | 0 | 1.0000 | 1.0000 |
+
+The secret review confirmed five warning instances. Four private-key-bearing certificate-bundle instances across two repositories merit private maintainer notification; redacted drafts were prepared locally, but no maintainer has been contacted. Exact secret-related repositories, paths, certificate subjects, passwords, and values are intentionally withheld from public artifacts until private notification occurs. One additional confirmed warning is a tracked development environment containing a non-placeholder sensitive assignment, but no evidence showed that it was a live external credential.
+
+Generated-artifact and broken-link truth instances are published in [`extended-review.json`](extended-review.json). Aggregate before/after results are in [`results/extended-baseline.md`](results/extended-baseline.md) and [`results/extended-latest.md`](results/extended-latest.md).
+
+For these instance-level checks, TN is not reported because there is no finite enumerated universe of every possible non-secret file, non-generated path, or valid link instance. The secret review included a bounded independent scan for common credential patterns, but it is not a substitute for a dedicated secret scanner.
+
 ## Reproduce
 
 Network access and Git are required.

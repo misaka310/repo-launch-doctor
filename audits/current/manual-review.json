@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "reviewed_at": "2026-07-15T01:06:39.947301+00:00",
+  "reviewed_at": "2026-07-15T03:32:58.626107+00:00",
   "review_policy": {
     "order": "All 30 selected repository scan attempts completed before manual labels were assigned.",
     "start_entrypoint": "True only for a runnable application or tool that lacks a clear supported launch or use entrypoint. Libraries, documentation workspaces, educational collections, and frameworks imported by consumers do not require an application launcher.",

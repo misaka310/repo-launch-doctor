@@ -137,5 +137,74 @@ class CurrentAuditTests(unittest.TestCase):
         )
 
 
+    def test_extended_audit_results_are_internally_consistent(self) -> None:
+        review = json.loads(
+            (AUDIT_DIR / "extended-review.json").read_text(encoding="utf-8")
+        )
+        baseline = json.loads(
+            (AUDIT_DIR / "results" / "extended-baseline.json").read_text(encoding="utf-8")
+        )
+        latest = json.loads(
+            (AUDIT_DIR / "results" / "extended-latest.json").read_text(encoding="utf-8")
+        )
+
+        expected_baseline = {
+            "secret-risk-file": {"TP": 5, "FP": 5, "FN": 0},
+            "generated-artifact-present": {"TP": 3, "FP": 3, "FN": 6},
+            "broken-markdown-link": {"TP": 58, "FP": 27, "FN": 0},
+        }
+        expected_latest = {
+            "secret-risk-file": {"TP": 5, "FP": 0, "FN": 0},
+            "generated-artifact-present": {"TP": 9, "FP": 0, "FN": 0},
+            "broken-markdown-link": {"TP": 58, "FP": 0, "FN": 0},
+        }
+        for check in expected_baseline:
+            self.assertEqual(
+                expected_baseline[check],
+                {key: baseline["metrics"][check][key] for key in ("TP", "FP", "FN")},
+            )
+            self.assertEqual(
+                expected_latest[check],
+                {key: latest["metrics"][check][key] for key in ("TP", "FP", "FN")},
+            )
+            self.assertIsNone(baseline["metrics"][check]["TN"])
+            self.assertIsNone(latest["metrics"][check]["TN"])
+
+        self.assertEqual(9, len(review["generated_artifact_truth"]))
+        self.assertEqual(58, len(review["broken_markdown_link_truth"]))
+        self.assertEqual(5, review["secret_review"]["confirmed_warning_instances"])
+        self.assertEqual(4, review["secret_review"]["maintainer_notification_candidates"])
+        self.assertEqual(2, review["secret_review"]["repositories_with_notification_candidates"])
+        self.assertTrue(
+            review["secret_review"]["details_withheld_pending_private_notification"]
+        )
+        self.assertIn(
+            "no maintainer has been contacted",
+            review["secret_review"]["notification_status"].casefold(),
+        )
+
+    def test_extended_public_artifacts_withhold_sensitive_instance_details(self) -> None:
+        paths = (
+            AUDIT_DIR / "extended-review.json",
+            AUDIT_DIR / "results" / "extended-baseline.json",
+            AUDIT_DIR / "results" / "extended-baseline.md",
+            AUDIT_DIR / "results" / "extended-latest.json",
+            AUDIT_DIR / "results" / "extended-latest.md",
+        )
+        blocked_fragments = (
+            ".env.development",
+            "server.pfx",
+            "odilon.p12",
+            "auth_client_secret",
+            "c:\\00_dev",
+            ".current-audit-cache",
+        )
+        for artifact in paths:
+            rendered = artifact.read_text(encoding="utf-8").casefold()
+            for fragment in blocked_fragments:
+                self.assertNotIn(fragment, rendered, artifact)
+
+
+
 if __name__ == "__main__":
     unittest.main()

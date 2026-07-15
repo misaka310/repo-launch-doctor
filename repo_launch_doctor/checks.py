@@ -61,6 +61,7 @@ GENERATED_SEGMENTS = {
     ".next",
     ".nuxt",
     ".svelte-kit",
+    ".idea",
     "node_modules",
     "vendor",
     "venv",
@@ -73,7 +74,37 @@ GENERATED_SEGMENTS = {
     "coverage",
     "htmlcov",
 }
+GENERATED_FILE_NAMES = {".ds_store", "desktop.ini", "thumbs.db"}
 GENERATED_SUFFIXES = {".log", ".tmp", ".dump", ".pyc"}
+BUILD_SOURCE_SUFFIXES = {
+    ".bat",
+    ".cmd",
+    ".gradle",
+    ".kts",
+    ".md",
+    ".props",
+    ".ps1",
+    ".py",
+    ".sh",
+    ".targets",
+    ".toml",
+    ".ts",
+    ".tsx",
+    ".xml",
+    ".yaml",
+    ".yml",
+}
+SENSITIVE_ENV_KEY_RE = re.compile(
+    r"(?i)(?:^|[_-])(?:api[_-]?key|access[_-]?key|client[_-]?secret|credential|"
+    r"password|passwd|private[_-]?key|secret|token)(?:$|[_-])"
+)
+SAFE_SECRET_VALUE_RE = re.compile(
+    r"(?i)^(?:|changeme|change_me|replace(?:-me|_me)?|your[_ -].*|example|sample|"
+    r"dummy|test|none|null|<[^>]+>|\$\{[^}]+\}|\{\{.*\}\}|\{%.*%\})$"
+)
+NPM_AUTH_KEY_RE = re.compile(r"(?i)(?:^|:)(?:_authToken|_password|_auth)$|^password$")
+INLINE_CODE_RE = re.compile(r"`+[^`\n]*`+")
+URI_SCHEME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
 RUNTIME_EXCLUDED_PREFIXES = (
     ".github/",
     "docs/",
@@ -258,19 +289,52 @@ def _markdown_link_target(raw_target: str) -> str:
     return unquote(target.split("#", 1)[0].split("?", 1)[0])
 
 
+def _markdown_prose(text: str) -> str:
+    lines: list[str] = []
+    fence_character: str | None = None
+    fence_length = 0
+    for line in text.splitlines():
+        fence = re.match(r"^ {0,3}(`{3,}|~{3,})", line)
+        if fence_character is not None:
+            if (
+                fence is not None
+                and fence.group(1)[0] == fence_character
+                and len(fence.group(1)) >= fence_length
+            ):
+                fence_character = None
+                fence_length = 0
+            lines.append("")
+            continue
+        if fence is not None:
+            fence_character = fence.group(1)[0]
+            fence_length = len(fence.group(1))
+            lines.append("")
+            continue
+        lines.append(INLINE_CODE_RE.sub("", line))
+    return "\n".join(lines)
+
+
 def _check_markdown_links(inventory: Inventory, texts: dict[str, str]) -> list[Finding]:
     findings: list[Finding] = []
+    seen: set[tuple[str, str]] = set()
     for relative, text in texts.items():
         if Path(relative).suffix.casefold() not in {".md", ".markdown"}:
             continue
         source = inventory.root / relative
-        for match in MARKDOWN_LINK_RE.finditer(text):
-            raw_target = match.group(1)
-            if raw_target.startswith(("http://", "https://", "mailto:", "data:", "#")):
+        for match in MARKDOWN_LINK_RE.finditer(_markdown_prose(text)):
+            raw_target = match.group(1).strip()
+            if (
+                not raw_target
+                or raw_target.startswith(("#", "//"))
+                or URI_SCHEME_RE.match(raw_target)
+            ):
                 continue
             target = _markdown_link_target(raw_target)
-            if not target:
+            if not target or (relative, target) in seen:
                 continue
+            if target.startswith("/") and not Path(target).suffix:
+                continue
+            seen.add((relative, target))
             candidate = (
                 inventory.root / target.lstrip("/")
                 if target.startswith("/")
@@ -629,10 +693,51 @@ def _is_sensitive_path(relative: str) -> bool:
     return lowered.endswith("/.aws/credentials") or lowered == ".aws/credentials"
 
 
+def _is_safe_public_config_value(value: str) -> bool:
+    return bool(
+        SAFE_SECRET_VALUE_RE.fullmatch(value)
+        or re.fullmatch(r"(?i)(?:true|false|yes|no|on|off|-?\d+(?:\.\d+)?)", value)
+        or URI_SCHEME_RE.match(value)
+    )
+
+
+def _secret_config_has_sensitive_value(text: str, *, npm_style: bool = False) -> bool:
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith(("#", ";")) or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        cleaned = value.strip().strip("\"'")
+        sensitive_key = (
+            bool(NPM_AUTH_KEY_RE.search(key))
+            if npm_style
+            else bool(SENSITIVE_ENV_KEY_RE.search(key))
+        )
+        if sensitive_key and not _is_safe_public_config_value(cleaned):
+            return True
+    return False
+
+
+def _secret_candidate_requires_warning(relative: str, text: str | None) -> bool:
+    name = Path(relative).name.casefold()
+    if name in {".npmrc", ".pypirc"}:
+        return text is None or _secret_config_has_sensitive_value(text, npm_style=True)
+    if name.startswith(".env."):
+        return text is None or _secret_config_has_sensitive_value(text)
+    return True
+
+
 def _check_secret_risk(inventory: Inventory) -> list[Finding]:
     findings: list[Finding] = []
+    readable_texts = {
+        inventory.relative(path): inventory.read_text(path)
+        for path in inventory.readable_files
+    }
     for relative in sorted(inventory.all_file_paths):
         if not _is_sensitive_path(relative):
+            continue
+        if not _secret_candidate_requires_warning(relative, readable_texts.get(relative)):
             continue
         tracked = inventory.tracked_files is not None and relative in inventory.tracked_files
         git_ignored = (
@@ -661,12 +766,21 @@ def _check_secret_risk(inventory: Inventory) -> list[Finding]:
 
 
 def _generated_root(relative: str) -> str | None:
-    parts = Path(relative).parts
+    normalized = relative.replace("\\", "/")
+    if normalized.casefold().startswith(".github/"):
+        return None
+    path = Path(normalized)
+    parts = path.parts
     for index, part in enumerate(parts):
-        if part.casefold() in GENERATED_SEGMENTS:
+        lowered = part.casefold()
+        if lowered == "build" and path.suffix.casefold() in BUILD_SOURCE_SUFFIXES:
+            continue
+        if lowered in GENERATED_SEGMENTS:
             return Path(*parts[: index + 1]).as_posix()
-    if Path(relative).suffix.casefold() in GENERATED_SUFFIXES:
-        return relative
+    if path.name.casefold() in GENERATED_FILE_NAMES:
+        return normalized
+    if path.suffix.casefold() in GENERATED_SUFFIXES:
+        return normalized
     return None
 
 
@@ -700,10 +814,19 @@ def _check_generated_artifacts(
 
         ignored = inventory.git_ignored_paths or frozenset()
         tracked_root_names = set(tracked_roots)
+        tracked_directories = {
+            Path(*Path(relative).parts[:index]).as_posix()
+            for relative in inventory.tracked_files
+            for index in range(1, len(Path(relative).parts))
+        }
         untracked_roots = Counter(
             root
             for relative in (*inventory.present_directories, *inventory.present_files)
             if relative not in inventory.tracked_files
+            and not (
+                relative in inventory.present_directories
+                and relative in tracked_directories
+            )
             and relative not in ignored
             and not accepted(relative)
             for root in [_generated_root(relative)]
