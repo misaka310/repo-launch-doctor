@@ -38,7 +38,22 @@ BINARY_SUFFIXES = {
     ".webm",
     ".webp",
     ".zip",
+    ".cer",
+    ".crt",
+    ".class",
+    ".der",
+    ".dylib",
+    ".icns",
+    ".jar",
+    ".p12",
+    ".pfx",
+    ".ser",
+    ".snk",
+    ".ttf",
+    ".woff",
+    ".woff2",
 }
+BINARY_FILENAMES = {".ds_store"}
 
 
 @dataclass(frozen=True, slots=True)
@@ -261,7 +276,10 @@ def collect_inventory(root: Path, config: DoctorConfig) -> Inventory:
             if size > config.max_file_bytes:
                 increment("large_files")
                 continue
-            if candidate.suffix.casefold() in BINARY_SUFFIXES:
+            if (
+                candidate.suffix.casefold() in BINARY_SUFFIXES
+                or candidate.name.casefold() in BINARY_FILENAMES
+            ):
                 increment("binary_files")
                 continue
             if len(readable_files) >= config.max_files:

@@ -1,0 +1,25 @@
+{
+  "target_id": "fredrikbwinlas--tictactoeyellowbelt--c343ecc4bf00",
+  "repository": "https://github.com/FredrikBWinLas/TicTacToeYellowBelt.git",
+  "commit": "c343ecc4bf0055e02941f025d64eeefcdf17563d",
+  "project_type": ".NET console application (before launcher)",
+  "labels": {
+    "missing-start-entrypoint": true,
+    "readme-missing-verification": true
+  },
+  "fetch_succeeded": true,
+  "checkout_succeeded": true,
+  "scan_complete": true,
+  "findings": [
+    "missing-start-entrypoint",
+    "missing-license",
+    "readme-missing-setup",
+    "readme-missing-usage",
+    "readme-missing-verification",
+    "missing-security-doc",
+    "readme-missing-limitations",
+    "readme-missing-requirements"
+  ],
+  "execution_error": null,
+  "verdict": "FAIL"
+}

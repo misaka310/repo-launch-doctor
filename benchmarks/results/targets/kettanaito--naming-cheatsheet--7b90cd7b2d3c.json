@@ -1,0 +1,22 @@
+{
+  "target_id": "kettanaito--naming-cheatsheet--7b90cd7b2d3c",
+  "repository": "https://github.com/kettanaito/naming-cheatsheet.git",
+  "commit": "7b90cd7b2d3ccb104a4443d5e7e152b8fd400533",
+  "project_type": "Documentation-only",
+  "labels": {
+    "missing-start-entrypoint": false
+  },
+  "fetch_succeeded": true,
+  "checkout_succeeded": true,
+  "scan_complete": true,
+  "findings": [
+    "readme-missing-setup",
+    "readme-missing-usage",
+    "readme-missing-verification",
+    "missing-security-doc",
+    "readme-missing-limitations",
+    "readme-missing-requirements"
+  ],
+  "execution_error": null,
+  "verdict": "PASS_WITH_NOTES"
+}

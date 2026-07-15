@@ -1,0 +1,20 @@
+{
+  "target_id": "cbogdan97--automation_test--dab37fe8a924",
+  "repository": "https://github.com/cbogdan97/automation_test.git",
+  "commit": "dab37fe8a9243a3436ba14381329db34e147aa26",
+  "project_type": "Cypress application (before launcher)",
+  "labels": {
+    "missing-start-entrypoint": true
+  },
+  "fetch_succeeded": true,
+  "checkout_succeeded": true,
+  "scan_complete": true,
+  "findings": [
+    "missing-readme",
+    "missing-start-entrypoint",
+    "missing-license",
+    "missing-security-doc"
+  ],
+  "execution_error": null,
+  "verdict": "FAIL"
+}

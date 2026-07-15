@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import tomllib
 from dataclasses import replace
 from datetime import datetime, timezone
@@ -8,7 +9,7 @@ from pathlib import Path
 
 from .checks import run_checks
 from .config import DoctorConfig, load_config
-from .inventory import Inventory, collect_inventory
+from .inventory import Inventory, collect_inventory, path_matches
 from .models import Finding, ScanReport
 from .reporters import write_reports
 
@@ -23,11 +24,74 @@ def _read_optional_text(inventory: Inventory, relative: str) -> str:
         return ""
 
 
+def _read_root_readme(inventory: Inventory) -> str:
+    for relative in sorted(inventory.all_file_paths, key=str.casefold):
+        if "/" in relative.replace("\\", "/"):
+            continue
+        if Path(relative).name.casefold().startswith("readme"):
+            return _read_optional_text(inventory, relative)
+    return ""
+
+
+def _is_dotnet_library(inventory: Inventory, paths: frozenset[str]) -> bool:
+    project_paths = [
+        path
+        for path in paths
+        if path.casefold().endswith(".csproj")
+        and not path.casefold().startswith(("test/", "tests/", "examples/"))
+    ]
+    if not project_paths:
+        return False
+    project_texts = [_read_optional_text(inventory, path) for path in project_paths]
+    return bool(project_texts) and not any(
+        re.search(r"Sdk\s*=\s*[\"'][^\"']*Microsoft\.NET\.Sdk\.(?:Web|Worker)[^\"']*[\"']", text, re.IGNORECASE)
+        or re.search(r"<OutputType>\s*(?:Exe|WinExe)\s*</OutputType>", text, re.IGNORECASE)
+        or re.search(r"<Use(?:WPF|WindowsForms)>\s*true\s*</Use", text, re.IGNORECASE)
+        for text in project_texts
+    )
+
+
+def _is_maven_aggregator(inventory: Inventory) -> bool:
+    pom = _read_optional_text(inventory, "pom.xml")
+    return bool(
+        pom
+        and re.search(r"<packaging>\s*pom\s*</packaging>", pom, re.IGNORECASE)
+        and re.search(r"<modules(?:\s[^>]*)?>", pom, re.IGNORECASE)
+    )
+
+
+def _declared_non_application_type(inventory: Inventory) -> str | None:
+    readme = _read_root_readme(inventory).casefold()
+    if not readme:
+        return None
+    if re.search(r"\b(?:is|provides)\s+(?:an?\s+)?(?:[\w-]+\s+){0,4}(?:library|framework)\b", readme):
+        return "library"
+    if "source generator" in readme or "component library" in readme:
+        return "library"
+    collection_markers = (
+        "documentation and operations workspace",
+        "company command center",
+        "knowledge base",
+        "collection of solutions",
+        "collection of examples",
+        "course examples",
+        "leetcode solutions",
+        "coding exercises",
+    )
+    if any(marker in readme for marker in collection_markers):
+        return "docs"
+    return None
+
+
 def _detect_project_type(inventory: Inventory, config: DoctorConfig) -> str:
     if config.project_type != "auto":
         return config.project_type
 
-    paths = inventory.all_file_paths
+    paths = frozenset(
+        path
+        for path in inventory.all_file_paths
+        if not path_matches(path, config.ignore_paths)
+    )
     lowered_paths = {path.casefold() for path in paths}
     package_json_text = _read_optional_text(inventory, "package.json")
     package_data: dict[str, object] = {}
@@ -117,6 +181,11 @@ def _detect_project_type(inventory: Inventory, config: DoctorConfig) -> str:
     if pyproject and has_python_package and not has_root_launcher:
         return "library"
 
+    if _is_dotnet_library(inventory, paths) or _is_maven_aggregator(inventory):
+        return "library"
+    declared_type = _declared_non_application_type(inventory)
+    if declared_type is not None:
+        return declared_type
     return "auto"
 
 

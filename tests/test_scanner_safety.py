@@ -28,6 +28,57 @@ class ScannerSafetyRegressionTests(unittest.TestCase):
                 "scan-incomplete", {finding.check_id for finding in report.findings}
             )
 
+    def test_known_binary_assets_do_not_make_scan_incomplete(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "run.bat").write_text("@echo off\n", encoding="utf-8")
+            for name in (
+                "icon.icns",
+                "server.pfx",
+                "certificate.p12",
+                "certificate.crt",
+                "font.ttf",
+                "cache.ser",
+                "key.snk",
+                ".DS_Store",
+            ):
+                (root / name).write_bytes(b"\xff\xfe\x00\x01")
+
+            report = scan_repository(root)
+
+            self.assertTrue(report.metadata["scan_complete"])
+            self.assertEqual([], report.metadata["scan_errors"])
+            self.assertNotIn(
+                "scan-incomplete", {finding.check_id for finding in report.findings}
+            )
+
+    def test_current_audit_cache_does_not_influence_semantic_checks(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "run.bat").write_text("@echo off\n", encoding="utf-8")
+            foreign = root / ".current-audit-cache" / "repositories" / "foreign"
+            foreign.mkdir(parents=True)
+            (foreign / "index.html").write_text("<html></html>\n", encoding="utf-8")
+            (foreign / "README.md").write_text(
+                "# Foreign\n\n[missing](docs/missing.md)\n", encoding="utf-8"
+            )
+            (foreign / "main.go").write_text(
+                "package main\nfunc main() {}\n", encoding="utf-8"
+            )
+
+            report = scan_repository(root)
+
+            finding_ids = {finding.check_id for finding in report.findings}
+            self.assertNotEqual("static-web", report.metadata["project_type"])
+            self.assertNotIn("missing-favicon", finding_ids)
+            self.assertNotIn("broken-markdown-link", finding_ids)
+            self.assertNotIn(
+                "go run ./.current-audit-cache/repositories/foreign",
+                report.metadata["start_commands"],
+            )
+
     def test_internal_check_error_marks_scan_incomplete(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

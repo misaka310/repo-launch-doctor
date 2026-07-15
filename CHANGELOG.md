@@ -6,6 +6,21 @@
 - Only suggest Python test commands when pytest or unittest evidence exists.
 - Detect README coverage from Markdown headings rather than incidental prose.
 - Add a fixed-SHA public repository benchmark runner, report schema, and decision records.
+- Make external benchmark runs resumable with validated repository and per-target caches, independent fetch/checkout/scan timeouts, and repository-plus-SHA target IDs that support Before/After commits from the same repository.
+- Publish formal benchmark artifacts only after a complete 20-target run; partial runs remain under `.benchmark-cache` and cannot overwrite public evidence.
+- Replace oversized or incomplete corpus targets with classification-equivalent fixed-SHA repositories and record every replacement and rejected candidate.
+- Add network-free benchmark-runner regression tests covering shallow fetches, cache invalidation, failure accounting, resume/force behavior, and publication boundaries.
+- Recognize Node.js `package.json` `bin` declarations and descriptive root shell scripts such as `runqemu.sh` as entry points, and auto-classify documentation-only repositories so they do not require application launchers.
+- Add five verified public-history Before/After pairs and retain hard negative examples for Node.js CLI, documentation-only, and descriptive shell-launcher layouts.
+- Publish a complete balanced 20-target result with zero execution errors: TP 5 / FP 0 / FN 0 / TN 15 for `missing-start-entrypoint` and TP 6 / FP 0 / FN 0 / TN 4 for `readme-missing-verification`.
+- Add a current-repository audit that fixes the 30 targets before scanning, delays manual labels until all attempts finish, preserves excluded targets, and publishes baseline plus post-fix metrics.
+- Expand entrypoint recognition to Make targets, Docker/Compose declarations, Go `main` packages, browser-extension manifests, documented launch commands, and common package preview/playground scripts.
+- Recognize .NET libraries, Maven aggregators, and explicitly described library/framework/documentation collections so non-app repositories are not required to provide an application launcher.
+- Recognize concrete README verification commands and manual playground/preview procedures without requiring an exact `Testing` heading.
+- Skip additional known binary asset formats during text inspection instead of marking otherwise complete scans as unreadable.
+- Extend the current public-repository audit to instance-level secret-file, generated-artifact, and broken-Markdown-link review while withholding sensitive disclosure details from public artifacts.
+- Reduce secret-file false positives by distinguishing auth-bearing `.npmrc`/`.pypirc` and sensitive non-template `.env.*` assignments from public configuration and deployment templates.
+- Detect tracked IDE/OS metadata, avoid treating source/config directories named `build` as generated output, and ignore Markdown links inside code examples, URI schemes, extensionless site routes, and duplicate source-target pairs.
 
 ## 0.2.0
 

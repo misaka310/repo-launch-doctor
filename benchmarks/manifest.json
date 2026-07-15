@@ -1,26 +1,176 @@
 {
   "schema_version": 1,
-  "label_policy": "Labels describe observed repository facts, not desired tool outcomes. Changes require an entry in benchmarks/label-history.md.",
+  "label_policy": "Labels describe observed repository facts at the pinned commit, not desired tool outcomes. Changes require an entry in benchmarks/label-history.md.",
   "repositories": [
-    {"repository":"https://github.com/pallets/click.git","commit":"b67832c2167e5b0ff6764a8c04a0a9087e697b5a","project_type":"Python CLI","checks":{"missing-start-entrypoint":false},"reason":"pyproject console script is the documented CLI entry point."},
-    {"repository":"https://github.com/tiangolo/typer.git","commit":"3a3bd0f20a417835d4b4505a0bf834620e024cdb","project_type":"Python CLI","checks":{"missing-start-entrypoint":false},"reason":"Package metadata declares CLI scripts."},
-    {"repository":"https://github.com/psf/black.git","commit":"51abf53080b09eab12143727641ff1e2cd39d8c9","project_type":"Python CLI","checks":{"missing-start-entrypoint":false,"readme-missing-verification":false},"reason":"Black publishes a script entry point and test guidance."},
-    {"repository":"https://github.com/psf/requests.git","commit":"f361ead047be5cb873174218582f7d8b9fcd9f49","project_type":"Python library","checks":{"missing-start-entrypoint":false},"reason":"Requests is an importable library, not an application."},
-    {"repository":"https://github.com/pallets/flask.git","commit":"36e4a824f340fdee7ed50937ba8e7f6bc7d17f81","project_type":"Python library","checks":{"missing-start-entrypoint":false},"reason":"Flask is primarily packaged as a library."},
-    {"repository":"https://github.com/pytest-dev/pytest.git","commit":"67a174fcee355334c53588be2eeba8df702477e9","project_type":"Python CLI/library","checks":{"missing-start-entrypoint":false},"reason":"Pytest has a package script entry point."},
-    {"repository":"https://github.com/python/cpython.git","commit":"357c6500589ca7e065a6c263accfa1307d93c990","project_type":"Python runtime","checks":{"missing-start-entrypoint":false},"reason":"The source tree has documented build entry points rather than a root launcher."},
-    {"repository":"https://github.com/npm/cli.git","commit":"7b1f6c173d17b3bf30e45426f6df39473c6a1163","project_type":"Node.js CLI","checks":{"missing-start-entrypoint":false,"readme-missing-verification":false},"reason":"package.json bin and scripts define the CLI and tests."},
-    {"repository":"https://github.com/cli/cli.git","commit":"c14cbaa24a75272958161751240fd538a68e6c04","project_type":"Node.js CLI","checks":{"missing-start-entrypoint":false},"reason":"gh has a documented build and executable path."},
-    {"repository":"https://github.com/google/zx.git","commit":"00a2c484e219c2e84bfc3a199febf7fbce2cfbf4","project_type":"Node.js CLI","checks":{"missing-start-entrypoint":false},"reason":"package.json exposes a bin command."},
-    {"repository":"https://github.com/expressjs/express.git","commit":"ae6dd37680e3a00618d6c8a3e522f0ee4eeba1a4","project_type":"Dynamic web application","checks":{"missing-start-entrypoint":false},"reason":"npm scripts are a real development entry point."},
-    {"repository":"https://github.com/vercel/next.js.git","commit":"303f7ffd4a0db19948a71eba73cd85f366625a65","project_type":"Dynamic web application / monorepo","checks":{"missing-start-entrypoint":false},"reason":"The workspace defines package scripts."},
-    {"repository":"https://github.com/facebook/react.git","commit":"7023f501b644815e29a621875c0379ea757905f6","project_type":"JavaScript monorepo","checks":{"missing-start-entrypoint":false},"reason":"React is a library monorepo, not a launchable application."},
-    {"repository":"https://github.com/vuejs/core.git","commit":"9e03beb6b4c85a9d5b49b731c08263aa648e2a2a","project_type":"JavaScript monorepo","checks":{"missing-start-entrypoint":false},"reason":"Vue core is a library workspace."},
-    {"repository":"https://github.com/babel/babel.git","commit":"c86e9e4b272be7a8b9242bb310b26719393d700a","project_type":"JavaScript monorepo","checks":{"missing-start-entrypoint":false},"reason":"Babel uses package scripts and package entry points."},
-    {"repository":"https://github.com/microsoft/TypeScript.git","commit":"637d5746b70257028fb95aad32ddec6b26ab0a14","project_type":"JavaScript compiler / monorepo","checks":{"missing-start-entrypoint":false},"reason":"Compiler and test scripts are declared in package metadata."},
-    {"repository":"https://github.com/mdn/content.git","commit":"517b6108edc9a1eae8723f7f3ae434c1724d89ac","project_type":"Documentation-only","checks":{"missing-start-entrypoint":false},"reason":"MDN content is documentation, so no launcher is expected."},
-    {"repository":"https://github.com/microsoft/vscode.git","commit":"959c9c34a07ae9be5643e531125048fbf35c58d7","project_type":"Desktop application","checks":{"missing-start-entrypoint":false},"reason":"VS Code has package scripts and desktop build instructions."},
-    {"repository":"https://github.com/electron/electron.git","commit":"11a154de208843349e70c348e64f1ace58b124ca","project_type":"Desktop application","checks":{"missing-start-entrypoint":false},"reason":"Electron has explicit build and test commands."},
-    {"repository":"https://github.com/astropy/astropy.git","commit":"ed818fc907e57dcd85542367aabd6643f88c5db3","project_type":"Python library","checks":{"missing-start-entrypoint":false},"reason":"Astropy is an importable package with pytest configuration."}
+    {
+      "repository": "https://github.com/Ckala62rus/go-architecture-v2.git",
+      "commit": "2fc3164e0d8cce622d5f9dc30141df61e1de6c61",
+      "project_type": "Go web application (before launcher)",
+      "checks": {
+        "missing-start-entrypoint": true,
+        "readme-missing-verification": true
+      },
+      "reason": "At this public historical commit the runnable application has no clear root launcher or start/dev/serve command, and the README has no verification section. The next accepted paired commit adds a root start.bat."
+    },
+    {
+      "repository": "https://github.com/Ckala62rus/go-architecture-v2.git",
+      "commit": "df7c7b4f0aece8aaa4a2829f2a905419d023663c",
+      "project_type": "Go web application (after launcher)",
+      "checks": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "reason": "This public historical commit adds a root start.bat that launches the Docker Compose application; the README still has no verification section."
+    },
+    {
+      "repository": "https://github.com/cbogdan97/automation_test.git",
+      "commit": "dab37fe8a9243a3436ba14381329db34e147aa26",
+      "project_type": "Cypress application (before launcher)",
+      "checks": {"missing-start-entrypoint": true},
+      "reason": "At this public historical commit the project has no clear root launcher or start/dev/serve command. The next accepted paired commit adds a root start.bat."
+    },
+    {
+      "repository": "https://github.com/cbogdan97/automation_test.git",
+      "commit": "4f89826f29b32764df58255cb77f6f70cf17ca62",
+      "project_type": "Cypress application (after launcher)",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "This public historical commit adds a root start.bat that invokes the Cypress open command."
+    },
+    {
+      "repository": "https://github.com/FredrikBWinLas/TicTacToeYellowBelt.git",
+      "commit": "c343ecc4bf0055e02941f025d64eeefcdf17563d",
+      "project_type": ".NET console application (before launcher)",
+      "checks": {
+        "missing-start-entrypoint": true,
+        "readme-missing-verification": true
+      },
+      "reason": "At this public historical commit the runnable .NET application has no clear root launcher and the README has no verification section. The next accepted paired commit adds run.bat."
+    },
+    {
+      "repository": "https://github.com/FredrikBWinLas/TicTacToeYellowBelt.git",
+      "commit": "8b895bdfe1a2e9c75818dfa3ca7b8a293df3a24f",
+      "project_type": ".NET console application (after launcher)",
+      "checks": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "reason": "This public historical commit adds a root run.bat with the dotnet run command; the README still has no verification section."
+    },
+    {
+      "repository": "https://github.com/Jrock474/Back-End-Project.git",
+      "commit": "1c458ffb806ffd576c35f9f5b0c03f58e4da203d",
+      "project_type": "Node.js backend (before start script)",
+      "checks": {"missing-start-entrypoint": true},
+      "reason": "At this public historical commit package.json has no start/dev/serve script and there is no root launcher. The next accepted paired commit adds npm start."
+    },
+    {
+      "repository": "https://github.com/Jrock474/Back-End-Project.git",
+      "commit": "19a57b0de1a1bf1c1898b6a986e27e0fa6fe19fe",
+      "project_type": "Node.js backend (after start script)",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "This public historical commit adds package.json start: nodemon scripts.js."
+    },
+    {
+      "repository": "https://github.com/kierajreed/random-recipe-wiki.git",
+      "commit": "c55ec709a2d8c62e38f6d892b9148387c0caf050",
+      "project_type": "Node.js application (before start script)",
+      "checks": {
+        "missing-start-entrypoint": true,
+        "readme-missing-verification": true
+      },
+      "reason": "At this public historical commit package.json contains only the placeholder test command, with no start/dev/serve script, and the README has no verification section."
+    },
+    {
+      "repository": "https://github.com/kierajreed/random-recipe-wiki.git",
+      "commit": "a1a64d1eeeaf93e3a46469d3850bdaaa93b5c5e0",
+      "project_type": "Node.js application (after start script)",
+      "checks": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "reason": "This public historical commit replaces the placeholder package script with start: node index.js; the README still has no verification section."
+    },
+    {
+      "repository": "https://github.com/pallets/click.git",
+      "commit": "b67832c2167e5b0ff6764a8c04a0a9087e697b5a",
+      "project_type": "Python CLI",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned pyproject declares the Click console script."
+    },
+    {
+      "repository": "https://github.com/psf/black.git",
+      "commit": "51abf53080b09eab12143727641ff1e2cd39d8c9",
+      "project_type": "Python CLI",
+      "checks": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "reason": "The pinned package metadata declares the Black console scripts, and the README contains testing guidance."
+    },
+    {
+      "repository": "https://github.com/Fazilet1820/LaravelUppgift.git",
+      "commit": "1ea9b1fd97bdd1b8da7d3d729a000b0816f00eec",
+      "project_type": "Laravel web application",
+      "checks": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "reason": "The pinned application declares npm dev and Laravel serve commands, and the README contains specific test instructions."
+    },
+    {
+      "repository": "https://github.com/GabrielVelasco/Lead-Management.git",
+      "commit": "ca4899e5458a1f4db062f60abf85b2f89b7ef596",
+      "project_type": "FastAPI web application",
+      "checks": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "reason": "The pinned application has a root Python entry point and its README documents manual verification and pytest commands."
+    },
+    {
+      "repository": "https://github.com/pytest-dev/pytest.git",
+      "commit": "67a174fcee355334c53588be2eeba8df702477e9",
+      "project_type": "Python CLI/library",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned package metadata declares the pytest console script."
+    },
+    {
+      "repository": "https://github.com/gothinkster/react-redux-realworld-example-app.git",
+      "commit": "ee72eba4056392c95a27bc48d385d3f54ba38a18",
+      "project_type": "Web application",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned application declares npm start and build scripts."
+    },
+    {
+      "repository": "https://github.com/sindresorhus/open-cli.git",
+      "commit": "199a2033ae41c65928b8b8bfd7936082a135aa8c",
+      "project_type": "Node.js CLI",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned package metadata exposes the open executable through package.json bin."
+    },
+    {
+      "repository": "https://github.com/kettanaito/naming-cheatsheet.git",
+      "commit": "7b90cd7b2d3ccb104a4443d5e7e152b8fd400533",
+      "project_type": "Documentation-only",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned repository contains documentation and image assets only, so no application launcher is expected."
+    },
+    {
+      "repository": "https://github.com/cu-ecen-aeld/assignments-3-and-later-jqiaobln.git",
+      "commit": "002d4242677098a65c7352d4f39784c103da1649",
+      "project_type": "Embedded Linux assignment repository",
+      "checks": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "reason": "The pinned repository provides root run and test shell commands including runqemu.sh, and the README has a Testing section."
+    },
+    {
+      "repository": "https://github.com/pallets/itsdangerous.git",
+      "commit": "672971d66a2ef9f85151e53283113f33d642dabd",
+      "project_type": "Python library",
+      "checks": {"missing-start-entrypoint": false},
+      "reason": "The pinned revision is an importable Python library, not an application requiring a launcher."
+    }
   ]
 }

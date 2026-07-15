@@ -61,6 +61,7 @@ GENERATED_SEGMENTS = {
     ".next",
     ".nuxt",
     ".svelte-kit",
+    ".idea",
     "node_modules",
     "vendor",
     "venv",
@@ -73,7 +74,37 @@ GENERATED_SEGMENTS = {
     "coverage",
     "htmlcov",
 }
+GENERATED_FILE_NAMES = {".ds_store", "desktop.ini", "thumbs.db"}
 GENERATED_SUFFIXES = {".log", ".tmp", ".dump", ".pyc"}
+BUILD_SOURCE_SUFFIXES = {
+    ".bat",
+    ".cmd",
+    ".gradle",
+    ".kts",
+    ".md",
+    ".props",
+    ".ps1",
+    ".py",
+    ".sh",
+    ".targets",
+    ".toml",
+    ".ts",
+    ".tsx",
+    ".xml",
+    ".yaml",
+    ".yml",
+}
+SENSITIVE_ENV_KEY_RE = re.compile(
+    r"(?i)(?:^|[_-])(?:api[_-]?key|access[_-]?key|client[_-]?secret|credential|"
+    r"password|passwd|private[_-]?key|secret|token)(?:$|[_-])"
+)
+SAFE_SECRET_VALUE_RE = re.compile(
+    r"(?i)^(?:|changeme|change_me|replace(?:-me|_me)?|your[_ -].*|example|sample|"
+    r"dummy|test|none|null|<[^>]+>|\$\{[^}]+\}|\{\{.*\}\}|\{%.*%\})$"
+)
+NPM_AUTH_KEY_RE = re.compile(r"(?i)(?:^|:)(?:_authToken|_password|_auth)$|^password$")
+INLINE_CODE_RE = re.compile(r"`+[^`\n]*`+")
+URI_SCHEME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
 RUNTIME_EXCLUDED_PREFIXES = (
     ".github/",
     "docs/",
@@ -84,6 +115,32 @@ RUNTIME_EXCLUDED_PREFIXES = (
     "tests/",
 )
 MARKDOWN_HEADING_RE = re.compile(r"^ {0,3}#{1,6}[ \t]+(?P<title>.+?)\s*#*\s*$")
+
+
+README_VERIFICATION_COMMAND_RE = re.compile(
+    r"(?im)(?:^|[`$>]\s*)(?:"
+    r"python\s+-m\s+(?:pytest|unittest)\b|pytest\b|"
+    r"(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?(?:test|check|check:ci|lint|typecheck|build)\b|"
+    r"ruff\s+check\b|mypy\b|go\s+test\b|dotnet\s+test\b|cargo\s+test\b|"
+    r"mvn(?:w|\.cmd)?\s+(?:test|verify)\b|"
+    r"(?:\.\/)?gradlew(?:\.bat)?\s+(?:test|check|build)\b|"
+    r"make\s+(?:test|check|lint|verify)\b|"
+    r"[\w.-]*build[\w.-]*\.bat\b"
+    r")"
+)
+README_MANUAL_TEST_RE = re.compile(r"(?i)manual(?:ly)?\s+(?:test|testing|verify|verification)")
+README_PREVIEW_COMMAND_RE = re.compile(
+    r"(?i)(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?(?:playground|preview|storybook)\b"
+)
+README_LAUNCH_COMMAND_RE = re.compile(
+    r"(?i)^(?:"
+    r"make\s+(?:run|start|serve|dev)\b.*|"
+    r"docker(?:-compose|\s+compose)\s+up\b.*|docker\s+run\b.*|"
+    r"dotnet\s+run\b.*|go\s+run\b.*|uvicorn\s+\S+.*|java\s+-jar\s+\S+.*|"
+    r"(?:\.\/)?gradlew(?:\.bat)?\s+(?:run|bootrun)\b.*|"
+    r"[\w.-]+\.bat\s+run\b.*"
+    r")$"
+)
 
 
 def _finding(
@@ -155,6 +212,29 @@ def _readme_section_text(text: str) -> str:
     return "\n".join((*headings, *labels)).casefold()
 
 
+def _readme_has_verification_evidence(text: str) -> bool:
+    headings = _readme_section_text(text)
+    if any(
+        marker in headings
+        for marker in (
+            "test",
+            "verification",
+            "validation",
+            "quality",
+            "quick check",
+            "動作確認",
+            "検証",
+        )
+    ):
+        return True
+    if README_VERIFICATION_COMMAND_RE.search(text):
+        return True
+    return bool(
+        README_MANUAL_TEST_RE.search(text)
+        and README_PREVIEW_COMMAND_RE.search(text)
+    )
+
+
 def _check_readme(texts: dict[str, str]) -> list[Finding]:
     readme = _find_readme(texts)
     if readme is None:
@@ -180,7 +260,12 @@ def _check_readme(texts: dict[str, str]) -> list[Finding]:
     }
     findings: list[Finding] = []
     for section, markers in sections.items():
-        if not any(marker in lowered for marker in markers):
+        present = (
+            _readme_has_verification_evidence(text)
+            if section == "verification"
+            else any(marker in lowered for marker in markers)
+        )
+        if not present:
             severity = "MEDIUM" if section in {"setup", "usage", "verification"} else "LOW"
             findings.append(
                 _finding(
@@ -204,19 +289,52 @@ def _markdown_link_target(raw_target: str) -> str:
     return unquote(target.split("#", 1)[0].split("?", 1)[0])
 
 
+def _markdown_prose(text: str) -> str:
+    lines: list[str] = []
+    fence_character: str | None = None
+    fence_length = 0
+    for line in text.splitlines():
+        fence = re.match(r"^ {0,3}(`{3,}|~{3,})", line)
+        if fence_character is not None:
+            if (
+                fence is not None
+                and fence.group(1)[0] == fence_character
+                and len(fence.group(1)) >= fence_length
+            ):
+                fence_character = None
+                fence_length = 0
+            lines.append("")
+            continue
+        if fence is not None:
+            fence_character = fence.group(1)[0]
+            fence_length = len(fence.group(1))
+            lines.append("")
+            continue
+        lines.append(INLINE_CODE_RE.sub("", line))
+    return "\n".join(lines)
+
+
 def _check_markdown_links(inventory: Inventory, texts: dict[str, str]) -> list[Finding]:
     findings: list[Finding] = []
+    seen: set[tuple[str, str]] = set()
     for relative, text in texts.items():
         if Path(relative).suffix.casefold() not in {".md", ".markdown"}:
             continue
         source = inventory.root / relative
-        for match in MARKDOWN_LINK_RE.finditer(text):
-            raw_target = match.group(1)
-            if raw_target.startswith(("http://", "https://", "mailto:", "data:", "#")):
+        for match in MARKDOWN_LINK_RE.finditer(_markdown_prose(text)):
+            raw_target = match.group(1).strip()
+            if (
+                not raw_target
+                or raw_target.startswith(("#", "//"))
+                or URI_SCHEME_RE.match(raw_target)
+            ):
                 continue
             target = _markdown_link_target(raw_target)
-            if not target:
+            if not target or (relative, target) in seen:
                 continue
+            if target.startswith("/") and not Path(target).suffix:
+                continue
+            seen.add((relative, target))
             candidate = (
                 inventory.root / target.lstrip("/")
                 if target.startswith("/")
@@ -249,6 +367,33 @@ def _check_markdown_links(inventory: Inventory, texts: dict[str, str]) -> list[F
                     )
                 )
     return findings
+
+
+def _load_package_data(texts: dict[str, str]) -> dict[str, object]:
+    raw = texts.get("package.json")
+    if raw is None:
+        return {}
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _package_bin_commands(texts: dict[str, str]) -> list[str]:
+    data = _load_package_data(texts)
+    declared = data.get("bin")
+    if isinstance(declared, dict):
+        return sorted(
+            str(name)
+            for name, target in declared.items()
+            if isinstance(name, str) and name.strip() and isinstance(target, str) and target.strip()
+        )
+    if isinstance(declared, str) and declared.strip():
+        package_name = data.get("name")
+        if isinstance(package_name, str) and package_name.strip():
+            return [package_name.rsplit("/", 1)[-1]]
+    return []
 
 
 def _load_package_scripts(texts: dict[str, str]) -> dict[str, str]:
@@ -305,22 +450,106 @@ def _python_script_commands(texts: dict[str, str]) -> list[str]:
     return sorted(set(command for command in commands if command))
 
 
+def _readme_launch_commands(texts: dict[str, str]) -> list[str]:
+    readme = _find_readme(texts)
+    if readme is None:
+        return []
+    _, text = readme
+    candidates = list(text.splitlines())
+    candidates.extend(re.findall(r"`([^`\n]+)`", text))
+    commands: list[str] = []
+    for candidate in candidates:
+        normalized = candidate.strip().strip("`").strip()
+        normalized = re.sub(r"^(?:[-+*]>?\s+|\d+[.)]\s+)", "", normalized)
+        normalized = re.sub(r"^(?:\$|>)\s*", "", normalized).strip()
+        if README_LAUNCH_COMMAND_RE.fullmatch(normalized):
+            commands.append(normalized)
+    return sorted(set(commands))
+
+
+def _makefile_launch_commands(texts: dict[str, str]) -> list[str]:
+    text = next(
+        (value for path, value in texts.items() if path.casefold() == "makefile"),
+        "",
+    )
+    commands: list[str] = []
+    for match in re.finditer(r"(?im)^(run|start|serve|dev)\s*:(?![=])", text):
+        commands.append(f"make {match.group(1).casefold()}")
+    return commands
+
+
+def _container_launch_commands(texts: dict[str, str]) -> list[str]:
+    commands: list[str] = []
+    for path, text in texts.items():
+        normalized = path.casefold()
+        if "/" not in path and normalized == "dockerfile":
+            if re.search(r"(?im)^\s*entrypoint\s+", text):
+                commands.append("Dockerfile ENTRYPOINT")
+            elif re.search(r"(?im)^\s*cmd\s+", text):
+                commands.append("Dockerfile CMD")
+        if "/" not in path and normalized in {
+            "compose.yml",
+            "compose.yaml",
+            "docker-compose.yml",
+            "docker-compose.yaml",
+        }:
+            if re.search(r"(?im)^\s*services\s*:", text):
+                commands.append("docker compose up")
+    return commands
+
+
+def _browser_extension_commands(texts: dict[str, str]) -> list[str]:
+    for path, text in texts.items():
+        if Path(path).name.casefold() != "manifest.json":
+            continue
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(data, dict) and isinstance(data.get("manifest_version"), int):
+            return ["load browser extension"]
+    return []
+
+
+def _go_launch_commands(texts: dict[str, str]) -> list[str]:
+    commands: list[str] = []
+    for path, text in texts.items():
+        normalized = path.replace("\\", "/")
+        if Path(normalized).name.casefold() != "main.go":
+            continue
+        if normalized.casefold().startswith(RUNTIME_EXCLUDED_PREFIXES):
+            continue
+        if not re.search(r"(?m)^\s*package\s+main\b", text):
+            continue
+        parent = Path(normalized).parent.as_posix()
+        commands.append("go run ." if parent == "." else f"go run ./{parent}")
+    return commands
+
+
 def _detect_start_commands(
     texts: dict[str, str], scripts: dict[str, str], config: DoctorConfig
 ) -> list[str]:
     commands: list[str] = []
     for relative in texts:
         name = Path(relative).name.casefold()
-        is_launcher = name in START_FILE_NAMES or (
-            Path(name).suffix in {".bat", ".cmd", ".ps1"}
+        is_descriptive_launcher = (
+            Path(name).suffix in {".bat", ".cmd", ".ps1", ".sh"}
             and name.startswith(("start", "run", "launch", "open"))
+            and not any(marker in name for marker in ("build", "install", "setup", "test"))
         )
+        is_launcher = name in START_FILE_NAMES or is_descriptive_launcher
         if "/" not in relative and is_launcher:
             commands.append(relative)
-    for name in ("start", "dev", "serve"):
+    for name in ("start", "dev", "serve", "preview", "playground", "storybook"):
         if name in scripts:
             commands.append("npm start" if name == "start" else f"npm run {name}")
+    commands.extend(_package_bin_commands(texts))
     commands.extend(_python_script_commands(texts))
+    commands.extend(_makefile_launch_commands(texts))
+    commands.extend(_container_launch_commands(texts))
+    commands.extend(_browser_extension_commands(texts))
+    commands.extend(_go_launch_commands(texts))
+    commands.extend(_readme_launch_commands(texts))
     for relative in texts:
         normalized = relative.casefold()
         if (
@@ -418,9 +647,10 @@ def _check_entrypoints(
     texts: dict[str, str],
     config: DoctorConfig,
     start_commands: list[str],
+    project_type: str,
 ) -> list[Finding]:
     findings: list[Finding] = []
-    if not start_commands and config.project_type not in {"library", "docs"}:
+    if not start_commands and project_type not in {"library", "docs"}:
         findings.append(
             _finding(
                 "missing-start-entrypoint",
@@ -463,10 +693,51 @@ def _is_sensitive_path(relative: str) -> bool:
     return lowered.endswith("/.aws/credentials") or lowered == ".aws/credentials"
 
 
+def _is_safe_public_config_value(value: str) -> bool:
+    return bool(
+        SAFE_SECRET_VALUE_RE.fullmatch(value)
+        or re.fullmatch(r"(?i)(?:true|false|yes|no|on|off|-?\d+(?:\.\d+)?)", value)
+        or URI_SCHEME_RE.match(value)
+    )
+
+
+def _secret_config_has_sensitive_value(text: str, *, npm_style: bool = False) -> bool:
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith(("#", ";")) or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        cleaned = value.strip().strip("\"'")
+        sensitive_key = (
+            bool(NPM_AUTH_KEY_RE.search(key))
+            if npm_style
+            else bool(SENSITIVE_ENV_KEY_RE.search(key))
+        )
+        if sensitive_key and not _is_safe_public_config_value(cleaned):
+            return True
+    return False
+
+
+def _secret_candidate_requires_warning(relative: str, text: str | None) -> bool:
+    name = Path(relative).name.casefold()
+    if name in {".npmrc", ".pypirc"}:
+        return text is None or _secret_config_has_sensitive_value(text, npm_style=True)
+    if name.startswith(".env."):
+        return text is None or _secret_config_has_sensitive_value(text)
+    return True
+
+
 def _check_secret_risk(inventory: Inventory) -> list[Finding]:
     findings: list[Finding] = []
+    readable_texts = {
+        inventory.relative(path): inventory.read_text(path)
+        for path in inventory.readable_files
+    }
     for relative in sorted(inventory.all_file_paths):
         if not _is_sensitive_path(relative):
+            continue
+        if not _secret_candidate_requires_warning(relative, readable_texts.get(relative)):
             continue
         tracked = inventory.tracked_files is not None and relative in inventory.tracked_files
         git_ignored = (
@@ -495,12 +766,21 @@ def _check_secret_risk(inventory: Inventory) -> list[Finding]:
 
 
 def _generated_root(relative: str) -> str | None:
-    parts = Path(relative).parts
+    normalized = relative.replace("\\", "/")
+    if normalized.casefold().startswith(".github/"):
+        return None
+    path = Path(normalized)
+    parts = path.parts
     for index, part in enumerate(parts):
-        if part.casefold() in GENERATED_SEGMENTS:
+        lowered = part.casefold()
+        if lowered == "build" and path.suffix.casefold() in BUILD_SOURCE_SUFFIXES:
+            continue
+        if lowered in GENERATED_SEGMENTS:
             return Path(*parts[: index + 1]).as_posix()
-    if Path(relative).suffix.casefold() in GENERATED_SUFFIXES:
-        return relative
+    if path.name.casefold() in GENERATED_FILE_NAMES:
+        return normalized
+    if path.suffix.casefold() in GENERATED_SUFFIXES:
+        return normalized
     return None
 
 
@@ -534,10 +814,19 @@ def _check_generated_artifacts(
 
         ignored = inventory.git_ignored_paths or frozenset()
         tracked_root_names = set(tracked_roots)
+        tracked_directories = {
+            Path(*Path(relative).parts[:index]).as_posix()
+            for relative in inventory.tracked_files
+            for index in range(1, len(Path(relative).parts))
+        }
         untracked_roots = Counter(
             root
             for relative in (*inventory.present_directories, *inventory.present_files)
             if relative not in inventory.tracked_files
+            and not (
+                relative in inventory.present_directories
+                and relative in tracked_directories
+            )
             and relative not in ignored
             and not accepted(relative)
             for root in [_generated_root(relative)]
@@ -586,7 +875,12 @@ def _is_web_project(
         return True
     if config.project_type in {"desktop", "cli", "library", "docs"}:
         return False
-    return "index.html" in all_paths or any(path.endswith("/index.html") for path in all_paths)
+    relevant_paths = frozenset(
+        path for path in all_paths if not path_matches(path, config.ignore_paths)
+    )
+    return "index.html" in relevant_paths or any(
+        path.endswith("/index.html") for path in relevant_paths
+    )
 
 
 def _has_valid_favicon(
@@ -755,6 +1049,36 @@ def _check_scan_completeness(inventory: Inventory) -> list[Finding]:
     ]
 
 
+def _is_docs_only_repository(texts: dict[str, str], inventory: Inventory) -> bool:
+    if _find_readme(texts) is None:
+        return False
+    documentation_suffixes = {
+        ".adoc",
+        ".gif",
+        ".jpeg",
+        ".jpg",
+        ".md",
+        ".pdf",
+        ".png",
+        ".rst",
+        ".svg",
+        ".txt",
+        ".webp",
+    }
+    metadata_names = {".editorconfig", ".gitattributes", ".gitignore"}
+    for relative in inventory.all_file_paths:
+        normalized = relative.replace("\\", "/").casefold()
+        path = Path(normalized)
+        if normalized.startswith(".github/"):
+            continue
+        if path.name in metadata_names or path.name.startswith(("license", "readme")):
+            continue
+        if path.suffix in documentation_suffixes:
+            continue
+        return False
+    return True
+
+
 def _detected_project_type(
     texts: dict[str, str], inventory: Inventory, config: DoctorConfig
 ) -> str:
@@ -762,6 +1086,8 @@ def _detected_project_type(
         return config.project_type
     if _is_web_project(texts, inventory.all_file_paths, config):
         return "web"
+    if _is_docs_only_repository(texts, inventory):
+        return "docs"
     if "pyproject.toml" in texts and (
         "[project.scripts]" in texts["pyproject.toml"]
         or "repo_launch_doctor/__main__.py" in inventory.all_file_paths
@@ -778,6 +1104,7 @@ def run_checks(
     scripts = _load_package_scripts(texts)
     start_commands = _detect_start_commands(texts, scripts, config)
     verification_commands = _detect_verification_commands(scripts, texts)
+    project_type = _detected_project_type(texts, inventory, config)
     web_project = _is_web_project(texts, inventory.all_file_paths, config)
     ports = (
         _detect_ports(runtime_texts)
@@ -794,7 +1121,7 @@ def run_checks(
         lambda: _check_scan_completeness(inventory),
         lambda: _check_readme(texts),
         lambda: _check_markdown_links(inventory, texts),
-        lambda: _check_entrypoints(texts, config, start_commands),
+        lambda: _check_entrypoints(texts, config, start_commands, project_type),
         lambda: _check_secret_risk(inventory),
         lambda: _check_generated_artifacts(inventory, config),
         lambda: _check_web_features(
@@ -828,7 +1155,7 @@ def run_checks(
         sorted(Counter(finding.check_id for finding in suppressed).items())
     )
     metadata: dict[str, object] = {
-        "project_type": _detected_project_type(texts, inventory, config),
+        "project_type": project_type,
         "start_commands": start_commands,
         "verification_commands": verification_commands,
         "ports": ports,

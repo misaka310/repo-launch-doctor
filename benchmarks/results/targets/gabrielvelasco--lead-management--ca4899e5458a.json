@@ -1,0 +1,34 @@
+{
+  "target_id": "gabrielvelasco--lead-management--ca4899e5458a",
+  "repository": "https://github.com/GabrielVelasco/Lead-Management.git",
+  "commit": "ca4899e5458a1f4db062f60abf85b2f89b7ef596",
+  "project_type": "FastAPI web application",
+  "labels": {
+    "missing-start-entrypoint": false,
+    "readme-missing-verification": false
+  },
+  "fetch_succeeded": true,
+  "checkout_succeeded": true,
+  "scan_complete": true,
+  "findings": [
+    "broken-markdown-link",
+    "generated-artifact-present",
+    "generated-artifact-present",
+    "generated-artifact-present",
+    "generated-artifact-present",
+    "generated-artifact-present",
+    "generated-artifact-present",
+    "generated-artifact-present",
+    "generated-artifact-present",
+    "generated-artifact-present",
+    "missing-license",
+    "readme-missing-setup",
+    "readme-missing-usage",
+    "missing-config-example",
+    "missing-security-doc",
+    "readme-missing-limitations",
+    "readme-missing-requirements"
+  ],
+  "execution_error": null,
+  "verdict": "FAIL"
+}

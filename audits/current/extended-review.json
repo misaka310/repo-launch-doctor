@@ -1,0 +1,485 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-07-15T03:33:58.959704+00:00",
+  "review_order": [
+    "all 30 scan attempts completed",
+    "candidate instances extracted",
+    "repository files and documentation reviewed",
+    "instance labels assigned"
+  ],
+  "unit": "individual warning instance",
+  "secret_review": {
+    "confirmed_warning_instances": 5,
+    "false_positive_instances_in_baseline": 5,
+    "missed_instances_in_baseline": 0,
+    "maintainer_notification_candidates": 4,
+    "repositories_with_notification_candidates": 2,
+    "details_withheld_pending_private_notification": true,
+    "public_summary": "Confirmed warnings comprise one tracked development environment with a non-placeholder sensitive assignment and four tracked private-key-bearing certificate bundles. The exact repositories, paths, certificate subjects, and values are withheld from public artifacts.",
+    "notification_status": "Drafts prepared locally; no maintainer has been contacted."
+  },
+  "generated_artifact_truth": [
+    {
+      "repository": "atolomei/odilon-server",
+      "commit": "1561962058417ff95e3a22eb976106020ddf6520",
+      "path": "odilon-installer-2.1/.DS_Store",
+      "rationale": "Tracked operating-system metadata file."
+    },
+    {
+      "repository": "DevOps26HN/AI-Mock-Interview-Platform",
+      "commit": "b4faca9a87de91680387b2890bec8cfee7dd3924",
+      "path": ".DS_Store",
+      "rationale": "Tracked operating-system metadata file."
+    },
+    {
+      "repository": "nuhkoca/Proje-Bulteni-Android-App",
+      "commit": "cf37bca75d8b41c41ace50f8debb4128f62fd346",
+      "path": ".idea",
+      "rationale": "Tracked IDE project metadata directory."
+    },
+    {
+      "repository": "thomhurst/Sourcy",
+      "commit": "ce105d55e4e09dd4eea1fe043e399a1a6457de8c",
+      "path": ".idea",
+      "rationale": "Tracked IDE project metadata directory."
+    },
+    {
+      "repository": "vaneui/vaneui",
+      "commit": "37808f6b5f2932dd465da3e4c53276286ee93e2b",
+      "path": ".idea",
+      "rationale": "Tracked IDE project metadata directory."
+    },
+    {
+      "repository": "varghese25/PythonCourse_26_03_2025",
+      "commit": "1549826fcec45120a78bfdd31c962d7a4a481c76",
+      "path": ".idea",
+      "rationale": "Tracked IDE project metadata directory."
+    },
+    {
+      "repository": "varghese25/PythonCourse_26_03_2025",
+      "commit": "1549826fcec45120a78bfdd31c962d7a4a481c76",
+      "path": "__pycache__",
+      "rationale": "Tracked Python bytecode cache directory."
+    },
+    {
+      "repository": "varghese25/PythonCourse_26_03_2025",
+      "commit": "1549826fcec45120a78bfdd31c962d7a4a481c76",
+      "path": "basic/__pycache__",
+      "rationale": "Tracked Python bytecode cache directory."
+    },
+    {
+      "repository": "varghese25/PythonCourse_26_03_2025",
+      "commit": "1549826fcec45120a78bfdd31c962d7a4a481c76",
+      "path": "InterviewPractice/__pycache__",
+      "rationale": "Tracked Python bytecode cache directory."
+    }
+  ],
+  "broken_markdown_link_truth": [
+    {
+      "repository": "adobe/helix-markdown-support",
+      "commit": "ddcabc331a5960c60e599c4aef062652ac0a91c4",
+      "source": "README.md",
+      "target": "docs/API.md",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "credfeto/credfeto-cache-proxy",
+      "commit": "cb1d80a6268239f742b50dcd9065efe370b5e202",
+      "source": "CONTRIBUTING.md",
+      "target": "blob/main/CODE_OF_CONDUCT.md",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "credfeto/credfeto-cache-proxy",
+      "commit": "cb1d80a6268239f742b50dcd9065efe370b5e202",
+      "source": "CONTRIBUTING.md",
+      "target": "issues",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "DevOps26HN/AI-Mock-Interview-Platform",
+      "commit": "b4faca9a87de91680387b2890bec8cfee7dd3924",
+      "source": "genai/README.md",
+      "target": "../.env",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "fratei/creative-ware-hq",
+      "commit": "7b17d0798ec9f42609fd0c5b725aa3e72ee2a816",
+      "source": "strategy/outcomes/2026-04.md",
+      "target": "../products/developer-api-sdk.md",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "fratei/creative-ware-hq",
+      "commit": "7b17d0798ec9f42609fd0c5b725aa3e72ee2a816",
+      "source": "strategy/outcomes/2026-04.md",
+      "target": "../products/sales-call-intelligence.md",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/acting-on-accounts-pm-dev-spec.md",
+      "target": "alt-enter-properties-pm-dev-spec.md",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/Completed/address-book-groups-pm-dev-spec.md",
+      "target": "../../QuickMail/Controls/TokenizedAddressBox.xaml.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/Completed/address-book-groups-pm-dev-spec.md",
+      "target": "../../QuickMail/ViewModels/AddressBookViewModel.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/Completed/address-book-groups-pm-dev-spec.md",
+      "target": "../../QuickMail/Views/AddressBookWindow.xaml",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/Completed/address-book-groups-pm-dev-spec.md",
+      "target": "../../QuickMail/Views/MainWindow.xaml.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/Completed/alt-enter-properties-pm-dev-spec.md",
+      "target": "context-menus-plan.md",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/graph-backend-pm-spec.md",
+      "target": "../docs/planning/mail-rules-pm-spec.md",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail.Tests/StubServices.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/App.xaml.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/Helpers/BatchObservableCollection.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/Models/ConfigModel.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/Models/HotkeyBinding.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/Services/CommandRegistry.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/Services/ContactService.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/Services/ImapService.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/Services/LocalStoreService.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/Services/LogService.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/Services/OAuthService.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/Services/SyncService.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/ViewModels/ComposeViewModel.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/ViewModels/MainViewModel.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/ViewModels/MainViewModel.cs:1901-2027",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/ViewModels/MainViewModel.cs:2060-2094",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/ViewModels/MainViewModel.cs:2121-2205",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/ViewModels/MainViewModel.cs:2207-2257",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/ViewModels/MainViewModel.cs:2962-3120",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/ViewModels/MainViewModel.cs:610-719",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/ViewModels/MainViewModel.cs:651-661",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/ViewModels/SettingsViewModel.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/ViewModels/ViewManagerViewModel.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/QuickMail-Review-2026-05-21.md",
+      "target": "QuickMail/Views/TreeViewFocusHelper.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/tabs-and-windows-pm-dev-spec.md",
+      "target": "CLAUDE.md",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/tabs-and-windows-pm-dev-spec.md",
+      "target": "docs/planning/alt-enter-properties-pm-dev-spec.md",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/tabs-and-windows-pm-dev-spec.md",
+      "target": "docs/planning/status-bar-accessibility-plan.md",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/tabs-and-windows-pm-dev-spec.md",
+      "target": "QuickMail/Models/ConfigModel.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/tabs-and-windows-pm-dev-spec.md",
+      "target": "QuickMail/Services/ConfigService.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/tabs-and-windows-pm-dev-spec.md",
+      "target": "QuickMail/Views/ComposeWindow.xaml",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "kellylford/QuickMail",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "source": "docs/planning/tabs-and-windows-pm-dev-spec.md",
+      "target": "QuickMail/Views/ComposeWindow.xaml.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "rizmyabdulla/Ripple",
+      "commit": "499496d2cca546b3b85b0aef68a0b3b5a334239a",
+      "source": "docs/03-ripple-architecture.md",
+      "target": "/assets/architecture.png",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "thomhurst/Sourcy",
+      "commit": "ce105d55e4e09dd4eea1fe043e399a1a6457de8c",
+      "source": "Sourcy.Docker/Readme.md",
+      "target": "../Sourcy.DotNet.Sample/Sourcy.DotNet.Sample.csproj",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "thomhurst/Sourcy",
+      "commit": "ce105d55e4e09dd4eea1fe043e399a1a6457de8c",
+      "source": "Sourcy.Docker/Readme.md",
+      "target": "SampleIncrementalSourceGenerator.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "thomhurst/Sourcy",
+      "commit": "ce105d55e4e09dd4eea1fe043e399a1a6457de8c",
+      "source": "Sourcy.Docker/Readme.md",
+      "target": "SampleSourceGenerator.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "thomhurst/Sourcy",
+      "commit": "ce105d55e4e09dd4eea1fe043e399a1a6457de8c",
+      "source": "Sourcy.DotNet/Readme.md",
+      "target": "../Sourcy.DotNet.Sample/Sourcy.DotNet.Sample.csproj",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "thomhurst/Sourcy",
+      "commit": "ce105d55e4e09dd4eea1fe043e399a1a6457de8c",
+      "source": "Sourcy.DotNet/Readme.md",
+      "target": "SampleIncrementalSourceGenerator.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "thomhurst/Sourcy",
+      "commit": "ce105d55e4e09dd4eea1fe043e399a1a6457de8c",
+      "source": "Sourcy.DotNet/Readme.md",
+      "target": "SampleSourceGenerator.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "thomhurst/Sourcy",
+      "commit": "ce105d55e4e09dd4eea1fe043e399a1a6457de8c",
+      "source": "Sourcy.Git/Readme.md",
+      "target": "../Sourcy.Git.Sample/Sourcy.Git.Sample.csproj",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "thomhurst/Sourcy",
+      "commit": "ce105d55e4e09dd4eea1fe043e399a1a6457de8c",
+      "source": "Sourcy.Git/Readme.md",
+      "target": "Properties/launchSettings.json",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "thomhurst/Sourcy",
+      "commit": "ce105d55e4e09dd4eea1fe043e399a1a6457de8c",
+      "source": "Sourcy.Git/Readme.md",
+      "target": "SampleIncrementalSourceGenerator.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "thomhurst/Sourcy",
+      "commit": "ce105d55e4e09dd4eea1fe043e399a1a6457de8c",
+      "source": "Sourcy.Git/Readme.md",
+      "target": "SampleSourceGenerator.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "thomhurst/Sourcy",
+      "commit": "ce105d55e4e09dd4eea1fe043e399a1a6457de8c",
+      "source": "Sourcy.Node/Readme.md",
+      "target": "../Sourcy.DotNet.Sample/Sourcy.DotNet.Sample.csproj",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "thomhurst/Sourcy",
+      "commit": "ce105d55e4e09dd4eea1fe043e399a1a6457de8c",
+      "source": "Sourcy.Node/Readme.md",
+      "target": "SampleIncrementalSourceGenerator.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    },
+    {
+      "repository": "thomhurst/Sourcy",
+      "commit": "ce105d55e4e09dd4eea1fe043e399a1a6457de8c",
+      "source": "Sourcy.Node/Readme.md",
+      "target": "SampleSourceGenerator.cs",
+      "rationale": "The repository-relative file target was absent at the audited commit."
+    }
+  ]
+}
