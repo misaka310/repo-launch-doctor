@@ -1,0 +1,360 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-07-15T01:06:39.947301+00:00",
+  "review_policy": {
+    "order": "All 30 selected repository scan attempts completed before manual labels were assigned.",
+    "start_entrypoint": "True only for a runnable application or tool that lacks a clear supported launch or use entrypoint. Libraries, documentation workspaces, educational collections, and frameworks imported by consumers do not require an application launcher.",
+    "readme_verification": "True when the root README lacks a concrete test, validation, build-check, quality-check, or explicitly described manual-verification procedure.",
+    "excluded": "Targets that could not be checked out or scanned completely are documented but excluded from labels and metrics."
+  },
+  "reviews": [
+    {
+      "repository": "https://github.com/colfin22/intro-quiz.git",
+      "commit": "077ff57ce4052057687cf2ac2a3bfe58951d512e",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "rationale": {
+        "missing-start-entrypoint": "The README provides a Docker Compose launch command and the Dockerfile declares the service command.",
+        "readme-missing-verification": "The README documents `python -m pytest` in its contributor verification guidance."
+      }
+    },
+    {
+      "repository": "https://github.com/opendatahub-io/agentic-ci.git",
+      "commit": "b8b5c540195290facffee7cdcbb6b9c84067177f",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "rationale": {
+        "missing-start-entrypoint": "The packaged CLI exposes the agentic-ci command and the README documents its usage.",
+        "readme-missing-verification": "The README documents product use but no concrete test or verification command."
+      }
+    },
+    {
+      "repository": "https://github.com/varghese25/PythonCourse_26_03_2025.git",
+      "commit": "1549826fcec45120a78bfdd31c962d7a4a481c76",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "rationale": {
+        "missing-start-entrypoint": "This is a collection of Python course examples rather than one application that requires a repository-level launcher.",
+        "readme-missing-verification": "The README contains course notes but no concrete verification guidance."
+      }
+    },
+    {
+      "repository": "https://github.com/Rayan-ouer/minimal-token-db-api.git",
+      "commit": "506d44db5c1e1542d975e2dd703e6e594adc3a7b",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "rationale": {
+        "missing-start-entrypoint": "The README provides Docker Compose startup and the container declares the application command.",
+        "readme-missing-verification": "The README contains no test or verification procedure."
+      }
+    },
+    {
+      "repository": "https://github.com/rizmyabdulla/Ripple.git",
+      "commit": "499496d2cca546b3b85b0aef68a0b3b5a334239a",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "rationale": {
+        "missing-start-entrypoint": "The pyproject declares the ripple CLI and the README documents command-line usage.",
+        "readme-missing-verification": "The README Quick checks section gives Ruff, mypy, pytest, and CLI help commands."
+      }
+    },
+    {
+      "repository": "https://github.com/ismayc/world-cup-viewer.git",
+      "commit": "0dd6deda9237379f1c5cc5e3046e2ab05553a15e",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "rationale": {
+        "missing-start-entrypoint": "The README and package scripts provide npm run dev as the launch command.",
+        "readme-missing-verification": "The README Develop block explicitly documents npm test and npm run build, with additional schedule validation guidance."
+      }
+    },
+    {
+      "repository": "https://github.com/adobe/helix-markdown-support.git",
+      "commit": "ddcabc331a5960c60e599c4aef062652ac0a91c4",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "rationale": {
+        "missing-start-entrypoint": "This is a JavaScript library, so an application launcher is not expected.",
+        "readme-missing-verification": "The README Development section explicitly documents npm test and npm run lint."
+      }
+    },
+    {
+      "repository": "https://github.com/fratei/creative-ware-hq.git",
+      "commit": "7b17d0798ec9f42609fd0c5b725aa3e72ee2a816",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "rationale": {
+        "missing-start-entrypoint": "This repository is a company operations and documentation workspace, not a runnable application requiring a launcher.",
+        "readme-missing-verification": "The README has no concrete test or verification procedure."
+      }
+    },
+    {
+      "repository": "https://github.com/sseanliu/PaperClip.git",
+      "commit": "b8cbf3a2d66e34a8cf0261c5fd37428ee830c5c2",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "rationale": {
+        "missing-start-entrypoint": "The Chrome extension README gives a complete Load unpacked installation and usage path, which is its supported entrypoint.",
+        "readme-missing-verification": "The README has no explicit test or verification procedure."
+      }
+    },
+    {
+      "repository": "https://github.com/SnowCait/nostter-deck.git",
+      "commit": "c41981c0b9f65792b38044db3393028a3ef65bae",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "rationale": {
+        "missing-start-entrypoint": "The package scripts provide Vite and Tauri development commands.",
+        "readme-missing-verification": "The README contains IDE setup only and does not document tests or verification commands."
+      }
+    },
+    {
+      "repository": "https://github.com/vaneui/vaneui.git",
+      "commit": "37808f6b5f2932dd465da3e4c53276286ee93e2b",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "rationale": {
+        "missing-start-entrypoint": "This is a React component library; it does not require an application launcher, and it also exposes a playground command.",
+        "readme-missing-verification": "The README explicitly describes npm run playground as the local development and manual-testing path."
+      }
+    },
+    {
+      "repository": "https://github.com/obsidianlabs-io/obsidian-admin-vue.git",
+      "commit": "95e85e3f489ea23bbbe41b67093cfc2c9536edd6",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "rationale": {
+        "missing-start-entrypoint": "The README provides pnpm dev and the package declares development commands.",
+        "readme-missing-verification": "The README lists pnpm check, pnpm check:ci, unit, E2E, lint, and typecheck quality gates."
+      }
+    },
+    {
+      "repository": "https://github.com/omnidotdev/runa-app.git",
+      "commit": "cc8903b013a53ead4faa344dfc3910c72020716b",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "rationale": {
+        "missing-start-entrypoint": "The README provides bun run dev and the package declares dev and start scripts.",
+        "readme-missing-verification": "The README documents startup but no test or verification command."
+      }
+    },
+    {
+      "repository": "https://github.com/kuldeeprajput-dev/own-typing.git",
+      "commit": "e0e3e0ac6c513f56241e612290fa7e24606acd76",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "rationale": {
+        "missing-start-entrypoint": "The README provides npm run dev and npm run start.",
+        "readme-missing-verification": "The README lists build, lint, and typecheck commands as concrete quality checks."
+      }
+    },
+    {
+      "repository": "https://github.com/stolostron/volsync-addon-controller.git",
+      "commit": "d0924b2b2a0b108394ab499a8de6d146f5ed7098",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "rationale": {
+        "missing-start-entrypoint": "The README explicitly provides make run for local controller startup.",
+        "readme-missing-verification": "The README contains a detailed testing workflow for the downstream operator catalog."
+      }
+    },
+    {
+      "repository": "https://github.com/openshift/lightspeed-agentic-operator.git",
+      "commit": "eb885d352da5889430c217735f0ae34ca726fee0",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "rationale": {
+        "missing-start-entrypoint": "The README documents both the oc-agentic CLI entrypoint and make run for the operator.",
+        "readme-missing-verification": "The README Testing section documents make test, make test-e2e, and targeted go test commands."
+      }
+    },
+    {
+      "repository": "https://github.com/toolsdotgo/sfm.git",
+      "commit": "c669389cf90f89085811535ba6bddf6fd2e64fa9",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "rationale": {
+        "missing-start-entrypoint": "This is a Go CLI and the README clearly documents the sfm command and subcommands.",
+        "readme-missing-verification": "The README provides usage examples but no test or verification procedure."
+      }
+    },
+    {
+      "repository": "https://github.com/bonnetn/minecraft-reverse-proxy.git",
+      "commit": "e205833b64dfecec33641c3aba166897117a0c34",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "rationale": {
+        "missing-start-entrypoint": "The README gives a complete docker run command and the Dockerfile declares the application command.",
+        "readme-missing-verification": "The README does not document a test or verification command."
+      }
+    },
+    {
+      "repository": "https://github.com/scribe-org/Scribe-Server.git",
+      "commit": "bf1e6b7b06203e9c0b6a3c0b88ddd3b544d7bf3f",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "rationale": {
+        "missing-start-entrypoint": "The README explicitly documents make build, make migrate, and make run for local startup.",
+        "readme-missing-verification": "The README setup section does not document the available make test command or another verification procedure."
+      }
+    },
+    {
+      "repository": "https://github.com/Doughm/UCurses.git",
+      "commit": "5875a2e0e125abf4ea845e4ee950b8e3bd337a1b",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "rationale": {
+        "missing-start-entrypoint": "This is a Unity framework imported into another project, not a standalone application requiring a repository launcher.",
+        "readme-missing-verification": "The README explains installation and use but no test or verification workflow."
+      }
+    },
+    {
+      "repository": "https://github.com/thomhurst/Sourcy.git",
+      "commit": "ce105d55e4e09dd4eea1fe043e399a1a6457de8c",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "rationale": {
+        "missing-start-entrypoint": "This is a set of .NET source-generator libraries, so no application launcher is expected.",
+        "readme-missing-verification": "The README provides library usage but no concrete test or verification command."
+      }
+    },
+    {
+      "repository": "https://github.com/kellylford/QuickMail.git",
+      "commit": "1cf730a87312b867be6bb895f164061acd83e8b8",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "rationale": {
+        "missing-start-entrypoint": "The README documents build.bat run and dotnet run --project QuickMail.",
+        "readme-missing-verification": "The README provides a build command and states that every push and pull request is built in GitHub Actions."
+      }
+    },
+    {
+      "repository": "https://github.com/Particular/NServiceBus.Persistence.AzureTable.git",
+      "commit": "27aa8c7ef17dd392a82a0c14ad55459e75a61225",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "rationale": {
+        "missing-start-entrypoint": "This is a persistence library, so a standalone application launcher is not expected.",
+        "readme-missing-verification": "The README has a Running tests locally section with the required environment setup."
+      }
+    },
+    {
+      "repository": "https://github.com/credfeto/credfeto-cache-proxy.git",
+      "commit": "cb1d80a6268239f742b50dcd9065efe370b5e202",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "rationale": {
+        "missing-start-entrypoint": "The repository is a containerized application and its Dockerfile declares the executable ENTRYPOINT and health check.",
+        "readme-missing-verification": "The README shows build-status badges but gives no reproducible local test or verification procedure."
+      }
+    },
+    {
+      "repository": "https://github.com/nuhkoca/Proje-Bulteni-Android-App.git",
+      "commit": "cf37bca75d8b41c41ace50f8debb4128f62fd346",
+      "labels": {
+        "missing-start-entrypoint": true,
+        "readme-missing-verification": true
+      },
+      "rationale": {
+        "missing-start-entrypoint": "This is an Android application, but the README gives no build, install, run, or Android Studio launch guidance; the generic Gradle wrapper alone is not a clear user entrypoint.",
+        "readme-missing-verification": "The README contains only a description and license, with no verification procedure."
+      }
+    },
+    {
+      "repository": "https://github.com/apache/johnzon.git",
+      "commit": "1b58078bb9496219c17374f48657cdb231bb4632",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "rationale": {
+        "missing-start-entrypoint": "This is a multi-module Java library project, so no standalone launcher is expected.",
+        "readme-missing-verification": "There is no README, so no README verification guidance exists."
+      }
+    },
+    {
+      "repository": "https://github.com/DevOps26HN/AI-Mock-Interview-Platform.git",
+      "commit": "b4faca9a87de91680387b2890bec8cfee7dd3924",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "rationale": {
+        "missing-start-entrypoint": "The README provides Docker Compose startup and complete per-service local launch commands.",
+        "readme-missing-verification": "The README contains a Testing Strategy section and additional subsystem testing guidance."
+      }
+    },
+    {
+      "repository": "https://github.com/KirtiPatiya25/DSA.git",
+      "commit": "25e7c1d7d87533e4b8b0d4d875e24ad714682e76",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "rationale": {
+        "missing-start-entrypoint": "This is a collection of independent LeetCode solutions rather than one runnable application requiring a repository-level launcher.",
+        "readme-missing-verification": "The README has no test or verification guidance."
+      }
+    },
+    {
+      "repository": "https://github.com/atolomei/odilon-server.git",
+      "commit": "1561962058417ff95e3a22eb976106020ddf6520",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "rationale": {
+        "missing-start-entrypoint": "The repository provides start-service.sh, odilon.bat, installers, and linked platform installation instructions.",
+        "readme-missing-verification": "The README documents operation and examples but no test or verification procedure."
+      }
+    }
+  ]
+}

@@ -30,6 +30,7 @@ DEFAULT_IGNORE_PATHS = (
     "**/reports/**",
     "**/doctor-output/**",
     "**/.benchmark-cache/**",
+    "**/.current-audit-cache/**",
 )
 
 CONFIG_KEYS = frozenset(

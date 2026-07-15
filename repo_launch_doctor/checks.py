@@ -86,6 +86,32 @@ RUNTIME_EXCLUDED_PREFIXES = (
 MARKDOWN_HEADING_RE = re.compile(r"^ {0,3}#{1,6}[ \t]+(?P<title>.+?)\s*#*\s*$")
 
 
+README_VERIFICATION_COMMAND_RE = re.compile(
+    r"(?im)(?:^|[`$>]\s*)(?:"
+    r"python\s+-m\s+(?:pytest|unittest)\b|pytest\b|"
+    r"(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?(?:test|check|check:ci|lint|typecheck|build)\b|"
+    r"ruff\s+check\b|mypy\b|go\s+test\b|dotnet\s+test\b|cargo\s+test\b|"
+    r"mvn(?:w|\.cmd)?\s+(?:test|verify)\b|"
+    r"(?:\.\/)?gradlew(?:\.bat)?\s+(?:test|check|build)\b|"
+    r"make\s+(?:test|check|lint|verify)\b|"
+    r"[\w.-]*build[\w.-]*\.bat\b"
+    r")"
+)
+README_MANUAL_TEST_RE = re.compile(r"(?i)manual(?:ly)?\s+(?:test|testing|verify|verification)")
+README_PREVIEW_COMMAND_RE = re.compile(
+    r"(?i)(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?(?:playground|preview|storybook)\b"
+)
+README_LAUNCH_COMMAND_RE = re.compile(
+    r"(?i)^(?:"
+    r"make\s+(?:run|start|serve|dev)\b.*|"
+    r"docker(?:-compose|\s+compose)\s+up\b.*|docker\s+run\b.*|"
+    r"dotnet\s+run\b.*|go\s+run\b.*|uvicorn\s+\S+.*|java\s+-jar\s+\S+.*|"
+    r"(?:\.\/)?gradlew(?:\.bat)?\s+(?:run|bootrun)\b.*|"
+    r"[\w.-]+\.bat\s+run\b.*"
+    r")$"
+)
+
+
 def _finding(
     check_id: str,
     severity: str,
@@ -155,6 +181,29 @@ def _readme_section_text(text: str) -> str:
     return "\n".join((*headings, *labels)).casefold()
 
 
+def _readme_has_verification_evidence(text: str) -> bool:
+    headings = _readme_section_text(text)
+    if any(
+        marker in headings
+        for marker in (
+            "test",
+            "verification",
+            "validation",
+            "quality",
+            "quick check",
+            "動作確認",
+            "検証",
+        )
+    ):
+        return True
+    if README_VERIFICATION_COMMAND_RE.search(text):
+        return True
+    return bool(
+        README_MANUAL_TEST_RE.search(text)
+        and README_PREVIEW_COMMAND_RE.search(text)
+    )
+
+
 def _check_readme(texts: dict[str, str]) -> list[Finding]:
     readme = _find_readme(texts)
     if readme is None:
@@ -180,7 +229,12 @@ def _check_readme(texts: dict[str, str]) -> list[Finding]:
     }
     findings: list[Finding] = []
     for section, markers in sections.items():
-        if not any(marker in lowered for marker in markers):
+        present = (
+            _readme_has_verification_evidence(text)
+            if section == "verification"
+            else any(marker in lowered for marker in markers)
+        )
+        if not present:
             severity = "MEDIUM" if section in {"setup", "usage", "verification"} else "LOW"
             findings.append(
                 _finding(
@@ -332,6 +386,82 @@ def _python_script_commands(texts: dict[str, str]) -> list[str]:
     return sorted(set(command for command in commands if command))
 
 
+def _readme_launch_commands(texts: dict[str, str]) -> list[str]:
+    readme = _find_readme(texts)
+    if readme is None:
+        return []
+    _, text = readme
+    candidates = list(text.splitlines())
+    candidates.extend(re.findall(r"`([^`\n]+)`", text))
+    commands: list[str] = []
+    for candidate in candidates:
+        normalized = candidate.strip().strip("`").strip()
+        normalized = re.sub(r"^(?:[-+*]>?\s+|\d+[.)]\s+)", "", normalized)
+        normalized = re.sub(r"^(?:\$|>)\s*", "", normalized).strip()
+        if README_LAUNCH_COMMAND_RE.fullmatch(normalized):
+            commands.append(normalized)
+    return sorted(set(commands))
+
+
+def _makefile_launch_commands(texts: dict[str, str]) -> list[str]:
+    text = next(
+        (value for path, value in texts.items() if path.casefold() == "makefile"),
+        "",
+    )
+    commands: list[str] = []
+    for match in re.finditer(r"(?im)^(run|start|serve|dev)\s*:(?![=])", text):
+        commands.append(f"make {match.group(1).casefold()}")
+    return commands
+
+
+def _container_launch_commands(texts: dict[str, str]) -> list[str]:
+    commands: list[str] = []
+    for path, text in texts.items():
+        normalized = path.casefold()
+        if "/" not in path and normalized == "dockerfile":
+            if re.search(r"(?im)^\s*entrypoint\s+", text):
+                commands.append("Dockerfile ENTRYPOINT")
+            elif re.search(r"(?im)^\s*cmd\s+", text):
+                commands.append("Dockerfile CMD")
+        if "/" not in path and normalized in {
+            "compose.yml",
+            "compose.yaml",
+            "docker-compose.yml",
+            "docker-compose.yaml",
+        }:
+            if re.search(r"(?im)^\s*services\s*:", text):
+                commands.append("docker compose up")
+    return commands
+
+
+def _browser_extension_commands(texts: dict[str, str]) -> list[str]:
+    for path, text in texts.items():
+        if Path(path).name.casefold() != "manifest.json":
+            continue
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(data, dict) and isinstance(data.get("manifest_version"), int):
+            return ["load browser extension"]
+    return []
+
+
+def _go_launch_commands(texts: dict[str, str]) -> list[str]:
+    commands: list[str] = []
+    for path, text in texts.items():
+        normalized = path.replace("\\", "/")
+        if Path(normalized).name.casefold() != "main.go":
+            continue
+        if normalized.casefold().startswith(RUNTIME_EXCLUDED_PREFIXES):
+            continue
+        if not re.search(r"(?m)^\s*package\s+main\b", text):
+            continue
+        parent = Path(normalized).parent.as_posix()
+        commands.append("go run ." if parent == "." else f"go run ./{parent}")
+    return commands
+
+
 def _detect_start_commands(
     texts: dict[str, str], scripts: dict[str, str], config: DoctorConfig
 ) -> list[str]:
@@ -346,11 +476,16 @@ def _detect_start_commands(
         is_launcher = name in START_FILE_NAMES or is_descriptive_launcher
         if "/" not in relative and is_launcher:
             commands.append(relative)
-    for name in ("start", "dev", "serve"):
+    for name in ("start", "dev", "serve", "preview", "playground", "storybook"):
         if name in scripts:
             commands.append("npm start" if name == "start" else f"npm run {name}")
     commands.extend(_package_bin_commands(texts))
     commands.extend(_python_script_commands(texts))
+    commands.extend(_makefile_launch_commands(texts))
+    commands.extend(_container_launch_commands(texts))
+    commands.extend(_browser_extension_commands(texts))
+    commands.extend(_go_launch_commands(texts))
+    commands.extend(_readme_launch_commands(texts))
     for relative in texts:
         normalized = relative.casefold()
         if (
@@ -617,7 +752,12 @@ def _is_web_project(
         return True
     if config.project_type in {"desktop", "cli", "library", "docs"}:
         return False
-    return "index.html" in all_paths or any(path.endswith("/index.html") for path in all_paths)
+    relevant_paths = frozenset(
+        path for path in all_paths if not path_matches(path, config.ignore_paths)
+    )
+    return "index.html" in relevant_paths or any(
+        path.endswith("/index.html") for path in relevant_paths
+    )
 
 
 def _has_valid_favicon(

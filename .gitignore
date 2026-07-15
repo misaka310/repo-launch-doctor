@@ -10,6 +10,7 @@ dist/
 *.egg-info/
 reports/
 .benchmark-cache/
+.current-audit-cache/
 doctor-output/
 .repo-launch-doctor.json
 .env

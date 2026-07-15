@@ -13,6 +13,11 @@
 - Recognize Node.js `package.json` `bin` declarations and descriptive root shell scripts such as `runqemu.sh` as entry points, and auto-classify documentation-only repositories so they do not require application launchers.
 - Add five verified public-history Before/After pairs and retain hard negative examples for Node.js CLI, documentation-only, and descriptive shell-launcher layouts.
 - Publish a complete balanced 20-target result with zero execution errors: TP 5 / FP 0 / FN 0 / TN 15 for `missing-start-entrypoint` and TP 6 / FP 0 / FN 0 / TN 4 for `readme-missing-verification`.
+- Add a current-repository audit that fixes the 30 targets before scanning, delays manual labels until all attempts finish, preserves excluded targets, and publishes baseline plus post-fix metrics.
+- Expand entrypoint recognition to Make targets, Docker/Compose declarations, Go `main` packages, browser-extension manifests, documented launch commands, and common package preview/playground scripts.
+- Recognize .NET libraries, Maven aggregators, and explicitly described library/framework/documentation collections so non-app repositories are not required to provide an application launcher.
+- Recognize concrete README verification commands and manual playground/preview procedures without requiring an exact `Testing` heading.
+- Skip additional known binary asset formats during text inspection instead of marking otherwise complete scans as unreadable.
 
 ## 0.2.0
 

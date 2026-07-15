@@ -98,6 +98,7 @@ class RepoLaunchDoctorTests(unittest.TestCase):
 
             self.assertIn("**/.git/**", config.ignore_paths)
             self.assertIn("**/.benchmark-cache/**", config.ignore_paths)
+            self.assertIn("**/.current-audit-cache/**", config.ignore_paths)
             self.assertIn("archive/**", config.ignore_paths)
             self.assertEqual(config.expected_ports, (8717,))
             self.assertEqual(config.expected_start_commands, ("start.bat",))
@@ -508,6 +509,216 @@ class RepoLaunchDoctorTests(unittest.TestCase):
             self.assertNotIn(
                 "missing-start-entrypoint", {finding.check_id for finding in report.findings}
             )
+
+    def test_make_run_target_is_an_entrypoint(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "Makefile").write_text("run:\n\tgo run ./cmd/server\n", encoding="utf-8")
+            (root / "go.mod").write_text("module example.com/app\n", encoding="utf-8")
+
+            report = scan_repository(root)
+
+            self.assertIn("make run", report.metadata["start_commands"])
+            self.assertNotIn(
+                "missing-start-entrypoint", {finding.check_id for finding in report.findings}
+            )
+
+    def test_root_dockerfile_entrypoint_is_an_entrypoint(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "Dockerfile").write_text(
+                'FROM alpine\nCOPY app /app\nENTRYPOINT ["/app"]\n', encoding="utf-8"
+            )
+
+            report = scan_repository(root)
+
+            self.assertIn("Dockerfile ENTRYPOINT", report.metadata["start_commands"])
+            self.assertNotIn(
+                "missing-start-entrypoint", {finding.check_id for finding in report.findings}
+            )
+
+    def test_readme_launch_command_is_an_entrypoint(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "README.md").write_text(
+                "# App\n\n## Usage\n\n```bash\ndotnet run --project App\n```\n",
+                encoding="utf-8",
+            )
+            (root / "App.csproj").write_text(
+                '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType></PropertyGroup></Project>',
+                encoding="utf-8",
+            )
+
+            report = scan_repository(root)
+
+            self.assertIn("dotnet run --project App", report.metadata["start_commands"])
+            self.assertNotIn(
+                "missing-start-entrypoint", {finding.check_id for finding in report.findings}
+            )
+
+    def test_browser_extension_manifest_is_an_entrypoint(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            extension = root / "extension"
+            extension.mkdir()
+            (extension / "manifest.json").write_text(
+                json.dumps({"manifest_version": 3, "name": "Example", "version": "1.0"}),
+                encoding="utf-8",
+            )
+
+            report = scan_repository(root)
+
+            self.assertIn("load browser extension", report.metadata["start_commands"])
+            self.assertNotIn(
+                "missing-start-entrypoint", {finding.check_id for finding in report.findings}
+            )
+
+    def test_root_go_main_is_an_entrypoint(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "go.mod").write_text("module example.com/app\n", encoding="utf-8")
+            (root / "main.go").write_text("package main\nfunc main() {}\n", encoding="utf-8")
+
+            report = scan_repository(root)
+
+            self.assertIn("go run .", report.metadata["start_commands"])
+            self.assertNotIn(
+                "missing-start-entrypoint", {finding.check_id for finding in report.findings}
+            )
+
+    def test_package_library_is_not_required_to_have_a_launcher(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "package.json").write_text(
+                json.dumps(
+                    {
+                        "name": "example-library",
+                        "main": "index.js",
+                        "exports": {".": "./index.js"},
+                        "peerDependencies": {"react": ">=18"},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (root / "index.js").write_text("export const value = 1;\n", encoding="utf-8")
+
+            report = scan_repository(root)
+
+            self.assertEqual("library", report.metadata["project_type"])
+            self.assertNotIn(
+                "missing-start-entrypoint", {finding.check_id for finding in report.findings}
+            )
+
+    def test_dotnet_library_is_not_required_to_have_a_launcher(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "Example.csproj").write_text(
+                '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net8.0</TargetFramework></PropertyGroup></Project>',
+                encoding="utf-8",
+            )
+            (root / "Example.cs").write_text("public class Example {}\n", encoding="utf-8")
+
+            report = scan_repository(root)
+
+            self.assertEqual("library", report.metadata["project_type"])
+            self.assertNotIn(
+                "missing-start-entrypoint", {finding.check_id for finding in report.findings}
+            )
+
+    def test_dotnet_web_sdk_is_not_classified_as_a_library(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "WebApp.csproj").write_text(
+                '<Project Sdk="Microsoft.NET.Sdk.Web"><PropertyGroup><TargetFramework>net8.0</TargetFramework></PropertyGroup></Project>',
+                encoding="utf-8",
+            )
+
+            report = scan_repository(root)
+
+            self.assertNotEqual("library", report.metadata["project_type"])
+            self.assertIn(
+                "missing-start-entrypoint", {finding.check_id for finding in report.findings}
+            )
+
+    def test_maven_aggregator_is_not_required_to_have_a_launcher(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "pom.xml").write_text(
+                "<project><modelVersion>4.0.0</modelVersion><packaging>pom</packaging><modules><module>core</module></modules></project>",
+                encoding="utf-8",
+            )
+
+            report = scan_repository(root)
+
+            self.assertEqual("library", report.metadata["project_type"])
+            self.assertNotIn(
+                "missing-start-entrypoint", {finding.check_id for finding in report.findings}
+            )
+
+    def test_documentation_workspace_is_not_required_to_have_a_launcher(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "README.md").write_text(
+                "# Company command center\n\nA documentation and operations workspace.\n",
+                encoding="utf-8",
+            )
+            (root / "strategy").mkdir()
+            (root / "strategy" / "roadmap.md").write_text("# Roadmap\n", encoding="utf-8")
+            (root / "tests").mkdir()
+            (root / "tests" / "policy.json").write_text("{}\n", encoding="utf-8")
+
+            report = scan_repository(root)
+
+            self.assertEqual("docs", report.metadata["project_type"])
+            self.assertNotIn(
+                "missing-start-entrypoint", {finding.check_id for finding in report.findings}
+            )
+
+    def test_concrete_readme_verification_commands_count_without_testing_heading(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / "README.md").write_text(
+                "# App\n\n## Quick checks\n\n```bash\nruff check .\nmypy src\npytest\n```\n",
+                encoding="utf-8",
+            )
+
+            findings = {finding.check_id for finding in scan_repository(root).findings}
+
+            self.assertNotIn("readme-missing-verification", findings)
+
+    def test_batch_build_command_counts_as_verification(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / "README.md").write_text(
+                "# Desktop app\n\n## Build & Run\n\n```bat\nbuild.bat\nbuild.bat run\n```\n",
+                encoding="utf-8",
+            )
+
+            findings = {finding.check_id for finding in scan_repository(root).findings}
+
+            self.assertNotIn("readme-missing-verification", findings)
+
+    def test_manual_testing_command_counts_as_verification(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / "README.md").write_text(
+                "# UI library\n\nUse `npm run playground` for local development and manual testing.\n",
+                encoding="utf-8",
+            )
+
+            findings = {finding.check_id for finding in scan_repository(root).findings}
+
+            self.assertNotIn("readme-missing-verification", findings)
 
     def test_broken_pyproject_does_not_create_a_phantom_cli(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
