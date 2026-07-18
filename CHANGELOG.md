@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0
+
+- Add `history-scan` for selected ranges, explicit commit lists, and one-time full-history checks.
+- Detect secret-like values in added text and commit messages without writing detected values to reports.
+- Detect sensitive-looking filenames introduced by historical commits, including files later deleted.
+- Emit redacted JSON and Markdown history reports and count binary patches that were not content-scanned.
+- Support pre-push and pull-request workflows that inspect both the current tree and every outgoing commit.
+
 ## 0.3.0
 
 - Parse Python project entry points with `tomllib`, including scripts and GUI scripts.
