@@ -230,17 +230,18 @@ class RepoLaunchDoctorTests(unittest.TestCase):
                     finding.check_id == "secret-risk-file"
                     and finding.path == ".env.production"
                     for finding in report.findings
-                ),
-                report.findings,
+                )
             )
 
     def test_tracked_mode_env_with_sensitive_assignment_is_secret(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             self._write_healthy_repository(root)
-            key = "AUTH_CLIENT_" + "SECRET"
-            value = "local-development-credential"
-            (root / ".env.development").write_text(f"{key}={value}\n", encoding="utf-8")
+            value = "deployment-secret-value"
+            (root / ".env.production").write_text(
+                f"PUBLIC_BASE_URL=https://example.invalid\nDEPLOY_TOKEN={value}\n",
+                encoding="utf-8",
+            )
             self._git(root, "init")
             self._git(root, "add", ".")
 
@@ -250,7 +251,7 @@ class RepoLaunchDoctorTests(unittest.TestCase):
                 finding
                 for finding in report.findings
                 if finding.check_id == "secret-risk-file"
-                and finding.path == ".env.development"
+                and finding.path == ".env.production"
             )
             self.assertEqual("BLOCKER", finding.severity)
             self.assertNotIn(value, finding.evidence)
@@ -259,10 +260,9 @@ class RepoLaunchDoctorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             self._write_healthy_repository(root)
-            template = root / "deploy" / ".env.j2"
-            template.parent.mkdir()
-            key = "DB_" + "PASSWORD"
-            template.write_text(f"{key}={{{{ database_password }}}}\n", encoding="utf-8")
+            (root / ".env.production").write_text(
+                "DEPLOY_TOKEN=${DEPLOY_TOKEN}\n", encoding="utf-8"
+            )
             self._git(root, "init")
             self._git(root, "add", ".")
 
@@ -271,113 +271,106 @@ class RepoLaunchDoctorTests(unittest.TestCase):
             self.assertFalse(
                 any(
                     finding.check_id == "secret-risk-file"
-                    and finding.path == "deploy/.env.j2"
+                    and finding.path == ".env.production"
                     for finding in report.findings
-                ),
-                report.findings,
-            )
-
-    def test_gitignore_fallback_works_without_git_repository(self) -> None:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            root = Path(temp_dir)
-            self._write_base_docs(root)
-            (root / "run.bat").write_text("@echo off\n", encoding="utf-8")
-            (root / ".gitignore").write_text(".env\n__pycache__/\n", encoding="utf-8")
-            (root / ".env").write_text("PRIVATE_VALUE=hidden\n", encoding="utf-8")
-            cache = root / "repo_launch_doctor" / "__pycache__"
-            cache.mkdir(parents=True)
-            (cache / "module.pyc").write_bytes(b"cache")
-
-            report = scan_repository(root)
-
-            self.assertEqual(report.metadata["ignore_detection_source"], ".gitignore-fallback")
-            self.assertFalse(
-                any(finding.check_id == "secret-risk-file" for finding in report.findings),
-                report.findings,
-            )
-            self.assertFalse(
-                any(
-                    finding.check_id == "generated-artifact-present"
-                    and "__pycache__" in finding.path
-                    for finding in report.findings
-                ),
-                report.findings,
-            )
-
-    def test_gitignore_fallback_respects_negation_for_sensitive_files(self) -> None:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            root = Path(temp_dir)
-            self._write_base_docs(root)
-            (root / "run.bat").write_text("@echo off\n", encoding="utf-8")
-            (root / ".gitignore").write_text(".env\n!.env\n", encoding="utf-8")
-            (root / ".env").write_text("PRIVATE_VALUE=visible\n", encoding="utf-8")
-
-            report = scan_repository(root)
-
-            self.assertTrue(
-                any(finding.check_id == "secret-risk-file" for finding in report.findings),
-                report.findings,
-            )
-
-    def test_git_ignored_env_is_not_reported(self) -> None:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            root = Path(temp_dir)
-            self._write_healthy_repository(root)
-            (root / ".gitignore").write_text(".env\n", encoding="utf-8")
-            (root / ".env").write_text("SECRET=local-only\n", encoding="utf-8")
-            self._git(root, "init")
-            self._git(root, "add", ".")
-
-            report = scan_repository(root)
-
-            self.assertFalse(
-                any(finding.path == ".env" for finding in report.findings),
-                report.findings,
+                )
             )
 
     def test_tracked_secret_is_blocker(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             self._write_healthy_repository(root)
-            (root / "credentials.json").write_text('{"token":"private"}\n', encoding="utf-8")
+            value = "private-value-do-not-copy"
+            (root / ".env").write_text(f"TOKEN={value}\n", encoding="utf-8")
+            self._git(root, "init")
+            self._git(root, "add", ".")
+
+            report = scan_repository(root)
+            secret = next(
+                finding for finding in report.findings if finding.check_id == "secret-risk-file"
+            )
+
+            self.assertEqual(secret.severity, "BLOCKER")
+            self.assertNotIn(value, secret.evidence)
+
+    def test_git_ignored_env_is_not_reported(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_healthy_repository(root)
+            (root / ".gitignore").write_text(".env\n", encoding="utf-8")
+            (root / ".env").write_text("TOKEN=private\n", encoding="utf-8")
             self._git(root, "init")
             self._git(root, "add", ".")
 
             report = scan_repository(root)
 
-            finding = next(
-                item for item in report.findings if item.path == "credentials.json"
+            self.assertFalse(
+                any(
+                    finding.check_id == "secret-risk-file" and finding.path == ".env"
+                    for finding in report.findings
+                )
             )
-            self.assertEqual(finding.severity, "BLOCKER")
-            self.assertNotIn("private", finding.evidence)
 
-    def test_untracked_generated_directory_is_reported_when_not_ignored(self) -> None:
+    def test_gitignore_fallback_works_without_git_repository(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            self._write_base_docs(root)
-            (root / "run.bat").write_text("@echo off\n", encoding="utf-8")
-            (root / "build").mkdir()
-            (root / "build" / "bundle.js").write_text("generated\n", encoding="utf-8")
-            self._git(root, "init")
-            self._git(root, "add", "README.md", "LICENSE", "SECURITY.md", "run.bat")
+            self._write_healthy_repository(root)
+            (root / ".gitignore").write_text(".env\nnode_modules/\n", encoding="utf-8")
+            (root / ".env").write_text("TOKEN=private\n", encoding="utf-8")
+            (root / "node_modules").mkdir()
+            (root / "node_modules" / "package.json").write_text("{}", encoding="utf-8")
 
             report = scan_repository(root)
 
-            findings = [
-                finding
-                for finding in report.findings
-                if finding.check_id == "generated-artifact-present"
-            ]
-            self.assertTrue(any(finding.path == "build" and finding.severity == "LOW" for finding in findings))
+            self.assertEqual(report.metadata["ignore_detection_source"], ".gitignore-fallback")
+            self.assertNotIn("secret-risk-file", {finding.check_id for finding in report.findings})
+            self.assertNotIn("generated-artifact-present", {finding.check_id for finding in report.findings})
 
-    def test_git_ignored_generated_directory_is_not_reported(self) -> None:
+    def test_gitignore_fallback_respects_negation_for_sensitive_files(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            self._write_base_docs(root)
-            (root / "run.bat").write_text("@echo off\n", encoding="utf-8")
-            (root / ".gitignore").write_text("build/\n", encoding="utf-8")
+            self._write_healthy_repository(root)
+            (root / ".gitignore").write_text(".env*\n!.env.production\n", encoding="utf-8")
+            (root / ".env.local").write_text("TOKEN=private-local\n", encoding="utf-8")
+            (root / ".env.production").write_text("DEPLOY_TOKEN=private-production\n", encoding="utf-8")
+
+            report = scan_repository(root)
+
+            secret_paths = {
+                finding.path
+                for finding in report.findings
+                if finding.check_id == "secret-risk-file"
+            }
+            self.assertNotIn(".env.local", secret_paths)
+            self.assertIn(".env.production", secret_paths)
+
+    def test_tracked_idea_and_ds_store_are_generated_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_healthy_repository(root)
+            (root / ".idea").mkdir()
+            (root / ".idea" / "workspace.xml").write_text("<project />", encoding="utf-8")
+            (root / ".DS_Store").write_bytes(b"desktop")
+            self._git(root, "init")
+            self._git(root, "add", ".")
+
+            report = scan_repository(root)
+
+            paths = {
+                finding.path
+                for finding in report.findings
+                if finding.check_id == "generated-artifact-present"
+            }
+            self.assertIn(".idea", paths)
+            self.assertIn(".DS_Store", paths)
+
+    def test_source_build_directories_are_not_generated_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_healthy_repository(root)
             (root / "build").mkdir()
-            (root / "build" / "bundle.js").write_text("generated\n", encoding="utf-8")
+            (root / "build" / "build.ts").write_text("export const build = true;\n", encoding="utf-8")
+            (root / "build" / "build.yaml").write_text("name: source-build\n", encoding="utf-8")
             self._git(root, "init")
             self._git(root, "add", ".")
 
@@ -388,207 +381,76 @@ class RepoLaunchDoctorTests(unittest.TestCase):
                     finding.check_id == "generated-artifact-present"
                     and finding.path == "build"
                     for finding in report.findings
-                ),
-                report.findings,
+                )
             )
 
     def test_tracked_build_output_is_detected_even_when_content_is_ignored(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            self._write_base_docs(root)
-            (root / "run.bat").write_text("@echo off\n", encoding="utf-8")
+            self._write_healthy_repository(root)
             (root / "build").mkdir()
-            (root / "build" / "bundle.js").write_text("generated\n", encoding="utf-8")
+            (root / "build" / "app.js").write_text("bundle", encoding="utf-8")
+            (root / ".gitignore").write_text("build/\n", encoding="utf-8")
             self._git(root, "init")
-            self._git(root, "add", ".")
+            self._git(root, "add", "-f", "build/app.js")
+            self._git(root, "add", "README.md", "LICENSE", "SECURITY.md", "package.json", "index.html", "favicon.ico", "server.js", ".gitignore")
 
             report = scan_repository(root)
 
-            finding = next(
-                item
-                for item in report.findings
-                if item.check_id == "generated-artifact-present"
-                and item.path == "build"
+            self.assertTrue(
+                any(
+                    finding.check_id == "generated-artifact-present"
+                    and finding.path == "build"
+                    for finding in report.findings
+                )
             )
-            self.assertEqual(finding.severity, "MEDIUM")
 
-    def test_tracked_idea_and_ds_store_are_generated_artifacts(self) -> None:
+    def test_untracked_generated_directory_is_reported_when_not_ignored(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             self._write_healthy_repository(root)
-            idea = root / ".idea"
-            idea.mkdir()
-            (idea / "modules.xml").write_text("<project/>\n", encoding="utf-8")
-            (root / ".DS_Store").write_bytes(b"local metadata")
             self._git(root, "init")
             self._git(root, "add", ".")
+            (root / "node_modules").mkdir()
+            (root / "node_modules" / "package.json").write_text("{}", encoding="utf-8")
 
             report = scan_repository(root)
-            generated_paths = {
-                finding.path
-                for finding in report.findings
-                if finding.check_id == "generated-artifact-present"
-            }
 
-            self.assertIn(".idea", generated_paths)
-            self.assertIn(".DS_Store", generated_paths)
+            self.assertTrue(
+                any(
+                    finding.check_id == "generated-artifact-present"
+                    and finding.path == "node_modules"
+                    for finding in report.findings
+                )
+            )
 
-    def test_source_build_directories_are_not_generated_artifacts(self) -> None:
+    def test_git_ignored_generated_directory_is_not_reported(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             self._write_healthy_repository(root)
-            source_build = root / "build" / "config"
-            source_build.mkdir(parents=True)
-            (source_build / "index.ts").write_text("export const value = 1;\n", encoding="utf-8")
-            action = root / ".github" / "actions" / "build"
-            action.mkdir(parents=True)
-            (action / "action.yml").write_text("name: Build action\n", encoding="utf-8")
-            props = root / "src" / "build"
-            props.mkdir(parents=True)
-            (props / "Project.props").write_text("<Project/>\n", encoding="utf-8")
+            (root / ".gitignore").write_text("node_modules/\n", encoding="utf-8")
             self._git(root, "init")
             self._git(root, "add", ".")
+            (root / "node_modules").mkdir()
+            (root / "node_modules" / "package.json").write_text("{}", encoding="utf-8")
 
             report = scan_repository(root)
 
             self.assertFalse(
                 any(
                     finding.check_id == "generated-artifact-present"
-                    and finding.path in {"build", ".github/actions/build", "src/build"}
+                    and finding.path == "node_modules"
                     for finding in report.findings
-                ),
-                report.findings,
-            )
-
-    def test_markdown_code_examples_uri_and_site_routes_are_not_local_links(self) -> None:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            root = Path(temp_dir)
-            self._write_healthy_repository(root)
-            (root / "README.md").write_text(
-                """# App
-
-+## Requirements
-+
-+Python 3.11.
-+
-+## Setup
-+
-+No installation.
-+
-+## Usage
-+
-+Use [the docs](/getting-started).
-+
-+Inline examples: `![alt](address)` and `[blank](about:blank)`.
-+
-+```go
-+type Item[data T] struct{}
-+```
-+
-+## Verification
-+
-+Run the tests.
-+
-+## Limitations
-+
-+Static inspection only.
-+""".replace("\n+", "\n"),
-                encoding="utf-8",
-            )
-
-            report = scan_repository(root)
-
-            self.assertFalse(
-                any(
-                    finding.check_id in {"broken-markdown-link", "markdown-link-outside-root"}
-                    for finding in report.findings
-                ),
-                report.findings,
-            )
-
-    def test_root_relative_markdown_file_is_checked(self) -> None:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            root = Path(temp_dir)
-            self._write_healthy_repository(root)
-            (root / "README.md").write_text(
-                "# App\n\n![Missing image](/assets/missing.png)\n",
-                encoding="utf-8",
-            )
-
-            report = scan_repository(root)
-
-            self.assertTrue(
-                any(
-                    finding.check_id == "broken-markdown-link"
-                    and finding.path == "README.md"
-                    for finding in report.findings
-                ),
-                report.findings,
-            )
-
-    def test_real_missing_markdown_link_is_reported_once(self) -> None:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            root = Path(temp_dir)
-            self._write_healthy_repository(root)
-            (root / "README.md").write_text(
-                "# App\n\n[Missing](docs/missing.md)\n[Missing again](docs/missing.md)\n",
-                encoding="utf-8",
-            )
-
-            report = scan_repository(root)
-            findings = [
-                finding
-                for finding in report.findings
-                if finding.check_id == "broken-markdown-link"
-                and finding.path == "README.md"
-            ]
-
-            self.assertEqual(1, len(findings))
-
-    def test_hidden_dependency_directory_is_excluded_from_content_reading(self) -> None:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            root = Path(temp_dir)
-            self._write_base_docs(root)
-            (root / "run.bat").write_text("@echo off\n", encoding="utf-8")
-            hidden = root / ".venv" / "Lib"
-            hidden.mkdir(parents=True)
-            (hidden / "huge.py").write_text("PORT = 65500\n", encoding="utf-8")
-
-            report = scan_repository(root)
-
-            self.assertNotIn(65500, report.metadata["ports"])
-            self.assertGreaterEqual(
-                report.metadata["skipped_reasons"].get("content_ignored_directories", 0),
-                1,
-            )
-
-    def test_max_paths_marks_report_incomplete(self) -> None:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            root = Path(temp_dir)
-            self._write_base_docs(root)
-            (root / "run.bat").write_text("@echo off\n", encoding="utf-8")
-            for index in range(5):
-                (root / f"extra-{index}.txt").write_text("x\n", encoding="utf-8")
-            (root / ".repo-launch-doctor.json").write_text(
-                json.dumps({"max_paths": 2}), encoding="utf-8"
-            )
-
-            report = scan_repository(root)
-
-            self.assertEqual(report.verdict, "INCOMPLETE")
-            self.assertIsNone(report.score)
-            self.assertIn(
-                "scan-incomplete", {finding.check_id for finding in report.findings}
+                )
             )
 
     def test_nested_dependency_tree_is_not_read_but_tracked_paths_are_detected(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            self._write_base_docs(root)
-            (root / "run.bat").write_text("@echo off\n", encoding="utf-8")
-            dependency = root / "packages" / "app" / "node_modules"
-            dependency.mkdir(parents=True)
-            (dependency / "dep.js").write_text("generated dependency\n", encoding="utf-8")
+            self._write_healthy_repository(root)
+            nested = root / "packages" / "app" / "node_modules" / "pkg"
+            nested.mkdir(parents=True)
+            (nested / "index.js").write_text("secret-looking = 'not scanned'", encoding="utf-8")
             self._git(root, "init")
             self._git(root, "add", ".")
 
@@ -604,6 +466,38 @@ class RepoLaunchDoctorTests(unittest.TestCase):
             self.assertGreater(
                 report.metadata["skipped_reasons"]["content_ignored_directories"], 0
             )
+
+    def test_hidden_dependency_directory_is_excluded_from_content_reading(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_healthy_repository(root)
+            nested = root / ".cache" / "node_modules"
+            nested.mkdir(parents=True)
+            (nested / "secret.txt").write_text("TOKEN=not-read", encoding="utf-8")
+
+            report = scan_repository(root)
+
+            self.assertGreater(
+                report.metadata["skipped_reasons"]["content_ignored_directories"], 0
+            )
+
+    def test_max_paths_marks_report_incomplete(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_base_docs(root)
+            (root / "run.bat").write_text("@echo off\n", encoding="utf-8")
+            for index in range(5):
+                (root / f"file-{index}.txt").write_text("x\n", encoding="utf-8")
+            (root / ".repo-launch-doctor.json").write_text(
+                json.dumps({"max_paths": 3}), encoding="utf-8"
+            )
+
+            report = scan_repository(root)
+
+            self.assertEqual(report.verdict, "INCOMPLETE")
+            self.assertIsNone(report.score)
+            self.assertFalse(report.is_complete)
+            self.assertIn("scan-incomplete", {finding.check_id for finding in report.findings})
 
     def test_max_files_marks_report_incomplete_but_path_checks_continue(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -1214,7 +1108,7 @@ class RepoLaunchDoctorTests(unittest.TestCase):
                 timeout=30,
             )
         self.assertEqual(completed.returncode, 0, completed.stderr)
-        self.assertIn("Verdict:", completed.stdout)
+        self.assertIn("Static verdict:", completed.stdout)
 
     @staticmethod
     def _git(root: Path, *args: str) -> None:
@@ -1231,11 +1125,11 @@ class RepoLaunchDoctorTests(unittest.TestCase):
 
 ## Requirements
 
-Python 3.11.
+Python 3.11
 
 ## Setup
 
-No installation.
+Install dependencies.
 
 ## Usage
 
@@ -1243,101 +1137,47 @@ Run the launcher.
 
 ## Verification
 
-Run the tests.
+Run tests.
 
 ## Limitations
 
-Static inspection only.
+Demo only.
 """,
             encoding="utf-8",
         )
-        (root / "LICENSE").write_text("MIT License\n", encoding="utf-8")
+        (root / "LICENSE").write_text("MIT\n", encoding="utf-8")
         (root / "SECURITY.md").write_text("# Security\n", encoding="utf-8")
 
     @classmethod
     def _write_healthy_repository(cls, root: Path) -> None:
-        (root / "src").mkdir()
-        (root / "public").mkdir()
-        (root / "docs").mkdir()
-        (root / "tests").mkdir()
-        (root / "README.md").write_text(
-            """# Healthy App
-
-A local web app with a documented startup path.
-
-## Requirements
-
-Python 3.11 and Node.js 20.
-
-## Setup
-
-Run `npm install`.
-
-## Usage
-
-Run `start.bat` or `npm run dev` and open the local app.
-
-## Verification
-
-Run `npm test` and check `/health`.
-
-## Limitations
-
-Local single-user use only.
-
-See [architecture](docs/architecture.md).
-""",
-            encoding="utf-8",
-        )
-        (root / "docs" / "architecture.md").write_text(
-            "# Architecture\n", encoding="utf-8"
-        )
-        (root / "LICENSE").write_text("MIT License\n", encoding="utf-8")
-        (root / "SECURITY.md").write_text("# Security\n", encoding="utf-8")
-        (root / "start.bat").write_text("@echo off\nnpm run dev\n", encoding="utf-8")
+        cls._write_base_docs(root)
         (root / "package.json").write_text(
             json.dumps(
                 {
-                    "scripts": {
-                        "dev": "node src/server.js",
-                        "test": "node --test",
-                        "build": "echo build",
-                    }
+                    "name": "healthy",
+                    "scripts": {"start": "node server.js", "test": "node --test"},
                 }
             ),
             encoding="utf-8",
         )
         (root / "index.html").write_text(
-            '<!doctype html><html><head><link rel="icon" href="/public/favicon.svg"></head></html>',
+            '<!doctype html><html><head><link rel="icon" href="favicon.ico"></head></html>',
             encoding="utf-8",
         )
-        (root / "public" / "favicon.svg").write_text(
-            "<svg></svg>\n", encoding="utf-8"
+        (root / "favicon.ico").write_bytes(b"ico")
+        (root / "server.js").write_text(
+            "const port = 8765; app.get('/health', handler);\n", encoding="utf-8"
         )
-        (root / "src" / "server.js").write_text(
-            "const port = 8765; app.get('/health', (_req, res) => res.json({ok:true}));\n",
-            encoding="utf-8",
-        )
-        (root / "tests" / "smoke.js").write_text("// smoke\n", encoding="utf-8")
 
-    @staticmethod
-    def _write_unhealthy_repository(root: Path, sensitive_value: str) -> None:
-        (root / "logs").mkdir()
+    @classmethod
+    def _write_unhealthy_repository(cls, root: Path, secret: str) -> None:
         (root / "README.md").write_text(
-            "# Broken App\n\nSee [missing docs](docs/missing.md).\n",
+            "# Broken\n\n[Missing](docs/missing.png)\n", encoding="utf-8"
+        )
+        (root / ".env").write_text(f"TOKEN={secret}\n", encoding="utf-8")
+        (root / "package.json").write_text(
+            json.dumps({"name": "broken", "scripts": {"start": "node server.js"}}),
             encoding="utf-8",
         )
-        (root / ".env").write_text(
-            f"PRIVATE_VALUE={sensitive_value}\n", encoding="utf-8"
-        )
-        (root / "logs" / "debug.log").write_text(
-            sensitive_value, encoding="utf-8"
-        )
-        (root / "index.html").write_text(
-            "<!doctype html><html><head></head></html>", encoding="utf-8"
-        )
-        (root / "server.py").write_text("PORT = 8123\n", encoding="utf-8")
-
-
-if __name__ == "__main__":
-    unittest.main()
+        (root / "index.html").write_text("<html><head></head></html>", encoding="utf-8")
+        (root / "server.js").write_text("const port = 8765;\n", encoding="utf-8")

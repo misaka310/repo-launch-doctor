@@ -10,10 +10,10 @@ from .constants import SEVERITY_ORDER
 from .models import Finding, ScanReport
 
 VERDICT_LABELS = {
-    "PASS": "公開前チェックに合格",
-    "PASS_WITH_NOTES": "公開可能・改善点あり",
-    "FAIL": "公開前に修正が必要",
-    "INCOMPLETE": "検査未完了",
+    "PASS": "静的公開前チェックに合格",
+    "PASS_WITH_NOTES": "静的チェック合格・改善点あり",
+    "FAIL": "静的チェックで公開前の修正が必要",
+    "INCOMPLETE": "静的検査未完了",
 }
 
 SEVERITY_LABELS = {
@@ -22,6 +22,17 @@ SEVERITY_LABELS = {
     "MEDIUM": "改善推奨",
     "LOW": "軽微",
     "INFO": "情報",
+}
+
+ASSURANCE_COVERAGE_LABELS = {
+    "repository_files": "リポジトリファイル",
+    "readme_and_entrypoints": "README・起動入口",
+    "git_tracking": "Git追跡・ignore状態",
+    "git_history": "Git履歴",
+    "runtime": "実際の起動・動作",
+    "dependencies": "依存関係・脆弱性",
+    "github_settings": "GitHub設定",
+    "binary_contents": "バイナリ・画像・PDF等の内部",
 }
 
 COVERAGE_LABELS = {
@@ -58,27 +69,49 @@ def _display_value(value: object) -> str:
     return str(value)
 
 
+def _assurance_coverage(report: ScanReport) -> dict[str, object]:
+    coverage = report.metadata.get("coverage", {})
+    return coverage if isinstance(coverage, dict) else {}
+
+
 def render_markdown(report: ScanReport) -> str:
     score = "N/A（検査未完了）" if report.score is None else f"{report.score}/100"
+    assurance = str(report.metadata.get("assurance_level", "static"))
+    coverage = _assurance_coverage(report)
     lines = [
         "# Repo Launch Doctor レポート",
         "",
-        f"- 判定: **{report.verdict} — {VERDICT_LABELS[report.verdict]}**",
+        f"- 保証レベル: **{assurance}**",
+        f"- 静的判定: **{report.verdict} — {VERDICT_LABELS[report.verdict]}**",
         f"- 対象: `{report.repository}`",
         f"- 生成日時: `{report.generated_at}`",
         f"- 読み取ったテキスト: **{report.files_scanned}**",
         f"- 確認したファイルパス: **{report.paths_discovered}**",
-        f"- スコア: **{score}**",
+        f"- 静的スコア: **{score}**",
         "",
-        "## 重要度別件数",
+        "> この判定は静的検査の結果です。`not_checked` の領域はPASSの保証範囲に含まれません。",
         "",
-        "| 重要度 | 件数 |",
-        "|---|---:|",
+        "## 保証範囲",
+        "",
+        "| 領域 | 状態 |",
+        "|---|---|",
     ]
+    for key, label in ASSURANCE_COVERAGE_LABELS.items():
+        lines.append(f"| {label} (`{key}`) | `{coverage.get(key, 'not_reported')}` |")
+
+    lines.extend(
+        [
+            "",
+            "## 重要度別件数",
+            "",
+            "| 重要度 | 件数 |",
+            "|---|---:|",
+        ]
+    )
     for severity, count in report.counts.items():
         lines.append(f"| {severity} | {count} |")
 
-    lines.extend(["", "## 検査範囲", ""])
+    lines.extend(["", "## 詳細な検査範囲", ""])
     coverage_keys = (
         "scan_complete",
         "git_tracked_file_detection",
@@ -157,6 +190,8 @@ def _finding_card(finding: Finding) -> str:
 
 def render_html(report: ScanReport) -> str:
     score = "N/A" if report.score is None else str(report.score)
+    assurance = str(report.metadata.get("assurance_level", "static"))
+    coverage = _assurance_coverage(report)
     count_cards = "".join(
         (
             f"<a class='metric' href='#severity-{severity.casefold()}'>"
@@ -182,6 +217,12 @@ def render_html(report: ScanReport) -> str:
             f"<strong>{len(items)}</strong></summary><div class='finding-list'>{cards}</div></details>"
         )
 
+    assurance_rows = _table_rows(
+        (
+            (f"{label} ({key})", coverage.get(key, "not_reported"))
+            for key, label in ASSURANCE_COVERAGE_LABELS.items()
+        )
+    )
     signal_rows = _table_rows(
         (
             (f"{SIGNAL_LABELS[key]} ({key})", report.metadata.get(key, []))
@@ -270,6 +311,7 @@ def render_html(report: ScanReport) -> str:
     .score strong {{ display: block; font-size: clamp(30px, 5vw, 48px); line-height: 1; }}
     .score span {{ color: var(--muted); }}
     .metadata {{ margin: 0; color: var(--muted); }}
+    .scope-note {{ margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--surface-2); color: var(--muted); }}
     .metrics {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 10px; }}
     .metric {{
       background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px;
@@ -321,7 +363,7 @@ def render_html(report: ScanReport) -> str:
 <main>
   <section class="hero" aria-labelledby="report-title">
     <div>
-      <p class="eyebrow">Repo Launch Doctor</p>
+      <p class="eyebrow">Static readiness · assurance: {html.escape(assurance)}</p>
       <h1 id="report-title">{html.escape(report.repository)}</h1>
     </div>
     <div class="status-row">
@@ -329,8 +371,9 @@ def render_html(report: ScanReport) -> str:
         <div class="verdict">{html.escape(report.verdict)}</div>
         <div class="verdict-note">{html.escape(VERDICT_LABELS[report.verdict])}</div>
       </div>
-      <div class="score"><strong>{html.escape(score)}</strong><span>score / 100</span></div>
+      <div class="score"><strong>{html.escape(score)}</strong><span>static score / 100</span></div>
     </div>
+    <p class="scope-note">このPASSは静的検査の結果です。実起動、依存関係、GitHub設定、バイナリ内部などの <code>not_checked</code> 領域は保証しません。</p>
     <p class="metadata">生成 {html.escape(report.generated_at)} · テキスト {report.files_scanned}件 · パス {report.paths_discovered}件</p>
     <nav class="metrics" aria-label="重要度別Finding">
       {count_cards}
@@ -338,7 +381,12 @@ def render_html(report: ScanReport) -> str:
   </section>
 
   <section class="panel">
-    <h2>検査範囲</h2>
+    <h2>保証範囲</h2>
+    <table><tbody>{assurance_rows}</tbody></table>
+  </section>
+
+  <section class="panel">
+    <h2>詳細な検査範囲</h2>
     <table><tbody>{coverage_rows}</tbody></table>
   </section>
 
