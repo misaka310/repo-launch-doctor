@@ -138,6 +138,8 @@ def _is_safe_generic_value(value: str) -> bool:
         return True
     if len(set(cleaned)) <= 2:
         return True
+    if re.fullmatch(r"[A-Z][A-Z0-9_]{7,}", cleaned):
+        return True
     return False
 
 
@@ -164,10 +166,18 @@ def _detect_secret_types(text: str, *, path: str = "") -> list[tuple[str, str]]:
             and code_file
             and bool(re.fullmatch(r"[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*", value))
         )
+        path_parts = {part.casefold() for part in Path(path).parts}
+        looks_like_short_test_fixture = (
+            bool(path_parts & {"test", "tests", "fixture", "fixtures", "__fixtures__"})
+            and quoted
+            and len(value) <= 16
+            and any(marker in value.casefold() for marker in ("secret", "password", "token", "key"))
+        )
         if (
             not looks_like_detector_constant
             and not looks_like_metadata_name
             and not looks_like_code_reference
+            and not looks_like_short_test_fixture
             and not _is_safe_generic_value(value)
         ):
             detected.append(("generic-secret-assignment", "HIGH"))
@@ -328,7 +338,7 @@ def _historical_sensitive_path_requires_warning(root: Path, commit: str, path: s
     if not _is_sensitive_path(path):
         return False
     name = Path(path).name.casefold()
-    if name in {".npmrc", ".pypirc"} or name.startswith(".env."):
+    if name in {".npmrc", ".pypirc", "firebase-config.js", "firebase-client-settings.js"} or name.startswith(".env."):
         try:
             text = _run_git_bytes(root, ["show", f"{commit}:{path}"]).decode(
                 "utf-8", errors="replace"

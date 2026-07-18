@@ -725,6 +725,11 @@ def _secret_candidate_requires_warning(relative: str, text: str | None) -> bool:
         return text is None or _secret_config_has_sensitive_value(text, npm_style=True)
     if name.startswith(".env."):
         return text is None or _secret_config_has_sensitive_value(text)
+    if name in {"firebase-config.js", "firebase-client-settings.js"}:
+        if text is None:
+            return True
+        normalized = re.sub(r"\s+", " ", text).strip()
+        return normalized != "export const firebaseConfig = null;"
     return True
 
 
