@@ -245,6 +245,23 @@ def _mark_incomplete(
     )
 
 
+def _apply_static_assurance(metadata: dict[str, object]) -> None:
+    complete = bool(metadata.get("scan_complete", True))
+    git_tracking = bool(metadata.get("git_tracked_file_detection"))
+    git_ignore = bool(metadata.get("git_ignore_detection"))
+    metadata["assurance_level"] = "static"
+    metadata["coverage"] = {
+        "repository_files": "checked" if complete else "incomplete",
+        "readme_and_entrypoints": "checked" if complete else "incomplete",
+        "git_tracking": "checked" if git_tracking and git_ignore else "partial",
+        "git_history": "not_checked",
+        "runtime": "not_checked",
+        "dependencies": "not_checked",
+        "github_settings": "not_checked",
+        "binary_contents": "not_checked",
+    }
+
+
 def scan_repository(
     root: Path | str,
     output_directory: Path | str | None = None,
@@ -260,6 +277,7 @@ def scan_repository(
     )
     findings, metadata = run_checks(inventory, effective_config)
     _mark_incomplete(findings, metadata, text_errors)
+    _apply_static_assurance(metadata)
 
     repository_label = str(root_path) if include_absolute_path else (root_path.name or ".")
     report = ScanReport(
