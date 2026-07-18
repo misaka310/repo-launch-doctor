@@ -32,8 +32,8 @@ def build_parser() -> argparse.ArgumentParser:
     scan.add_argument(
         "--fail-on",
         choices=("none", "blocker", "high", "medium"),
-        default="blocker",
-        help="Return exit code 1 when this severity or worse is present",
+        default="high",
+        help="Return exit code 1 when this severity or worse is present (default: high)",
     )
     scan.add_argument(
         "--include-absolute-path",
@@ -128,8 +128,9 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     score = "N/A" if report.score is None else f"{report.score}/100"
     print(f"Repository: {root}")
-    print(f"Verdict: {report.verdict}")
-    print(f"Score: {score}")
+    print(f"Assurance: {report.metadata.get('assurance_level', 'static')}")
+    print(f"Static verdict: {report.verdict}")
+    print(f"Static score: {score}")
     print(
         "Findings: "
         + ", ".join(f"{severity}={count}" for severity, count in report.counts.items())
