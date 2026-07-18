@@ -7,24 +7,24 @@ permissions:
   contents: read
 
 jobs:
-  diagnostic:
-    runs-on: ubuntu-latest
+  diagnostic-windows:
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - name: Capture full test output
-        shell: bash
+        shell: pwsh
         run: |
-          set +e
-          python -m unittest discover -s tests -v > diagnostic-test-output.txt 2>&1
-          echo "$?" > diagnostic-exit-code.txt
+          $process = Start-Process -FilePath python -ArgumentList @('-m', 'unittest', 'discover', '-s', 'tests', '-v') -RedirectStandardOutput diagnostic-test-output.txt -RedirectStandardError diagnostic-test-error.txt -NoNewWindow -Wait -PassThru
+          [System.IO.File]::WriteAllText('diagnostic-exit-code.txt', [string]$process.ExitCode, (New-Object System.Text.UTF8Encoding($false)))
           exit 0
       - name: Upload diagnostic output
         uses: actions/upload-artifact@v4
         with:
-          name: diagnostic-test-output
+          name: diagnostic-test-output-windows
           path: |
             diagnostic-test-output.txt
+            diagnostic-test-error.txt
             diagnostic-exit-code.txt
