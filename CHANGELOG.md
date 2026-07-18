@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Make `HIGH` the default `scan --fail-on` threshold so a displayed `FAIL` does not silently return success in the default CLI path.
+- Label verdicts and scores as static readiness results instead of implying runtime or security assurance.
+- Add machine-readable `assurance_level` and per-area `coverage` metadata, including explicit `not_checked` states for runtime, dependencies, GitHub settings, Git history, and binary contents.
+- Show the assurance boundary prominently in Markdown and HTML reports.
+
 ## 0.4.0
 
 - Add `history-scan` for selected ranges, explicit commit lists, and one-time full-history checks.
