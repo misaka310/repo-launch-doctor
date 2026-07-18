@@ -65,7 +65,10 @@ class StaticAssuranceTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            (root / "README.md").write_text("# Missing entrypoint\n", encoding="utf-8")
+            (root / "README.md").write_text(
+                "# Broken public docs\n\n[Missing file](missing.md)\n",
+                encoding="utf-8",
+            )
             output = root / "reports"
             with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
                 code = main(["scan", str(root), "--output", str(output)])
