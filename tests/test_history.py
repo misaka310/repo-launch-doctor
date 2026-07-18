@@ -91,11 +91,45 @@ class GitHistorySecretScanTests(unittest.TestCase):
                 "_SECRET_PATTERNS = (re.compile(r'example'),)\n"
                 "secret = 'sk-proj-' + ('B' * 40)\n"
                 "currentToken = make_runtime_id()\n"
-                "currentPlaybackToken = int(value or 0)\n",
+                "currentPlaybackToken = int(value or 0)\n"
+                "CLIENT_SECRET_PATH = Path('client_secret.json')\n"
+                "accessKey = config.accessKey\n"
+                "password = os.getenv('APP_PASSWORD')\n",
                 encoding="utf-8",
             )
             self._git(root, "add", "patterns.py")
             self._git(root, "commit", "-m", "add safe detector pattern")
+            head = self._git(root, "rev-parse", "HEAD")
+
+            report = scan_git_history(root, revision_range=f"{base}..{head}")
+
+            self.assertEqual(report.findings, [])
+
+    def test_hardcoded_generic_literal_is_detected(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._init_repo(root)
+            base = self._git(root, "rev-parse", "HEAD")
+            fake_value = "fixture-" + ("Q" * 24)
+            key = "pass" + "word"
+            (root / "settings.py").write_text(f"{key} = '{fake_value}'\n", encoding="utf-8")
+            self._git(root, "add", "settings.py")
+            self._git(root, "commit", "-m", "add hardcoded setting")
+            head = self._git(root, "rev-parse", "HEAD")
+
+            report = scan_git_history(root, revision_range=f"{base}..{head}")
+
+            self.assertTrue(any(f.detector == "generic-secret-assignment" for f in report.findings))
+            self.assertNotIn(fake_value, json.dumps(report.to_dict()))
+
+    def test_safe_npmrc_history_is_not_blocked(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._init_repo(root)
+            base = self._git(root, "rev-parse", "HEAD")
+            (root / ".npmrc").write_text("engine-strict=true\n", encoding="utf-8")
+            self._git(root, "add", ".npmrc")
+            self._git(root, "commit", "-m", "add safe npm settings")
             head = self._git(root, "rev-parse", "HEAD")
 
             report = scan_git_history(root, revision_range=f"{base}..{head}")

@@ -8,16 +8,19 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable, Sequence
 
-from .checks import _is_sensitive_path
+from .checks import _is_sensitive_path, _secret_candidate_requires_warning
 
 _ZERO_SHA_RE = re.compile(r"^0+$")
 _HUNK_RE = re.compile(r"^@@ -\d+(?:,\d+)? \+(?P<line>\d+)(?:,\d+)? @@")
 _GENERIC_ASSIGNMENT_RE = re.compile(
-    r"(?i)^\s*(?:export\s+)?(?P<key>(?:"
+    r"(?ix)^\s*(?:export\s+)?[\"']?(?P<key>(?:"
     r"[A-Z0-9_.-]*(?:api[_-]?key|access[_-]?key|client[_-]?secret|credential|"
     r"password|passwd|private[_-]?key|secret)[A-Z0-9_.-]*|"
     r"[A-Z0-9_.-]*(?:api|auth|access|refresh|bearer|github|secret)[_-]?token[A-Z0-9_.-]*|"
-    r"token))\s*[:=]\s*[\"']?(?P<value>[^\"'#\s]{8,})"
+    r"token))[\"']?\s*[:=]\s*(?:"
+    r"(?P<quote>[\"'])(?P<quoted_value>[^\"']{8,})(?P=quote)|"
+    r"(?P<plain_value>[A-Za-z0-9_./+=:@-]{8,})"
+    r")\s*[,;]?\s*(?:[#;].*)?$"
 )
 _SAFE_VALUE_RE = re.compile(
     r"(?i)^(?:changeme|change_me|replace(?:-me|_me)?|your[_-].*|example|sample|"
@@ -138,7 +141,7 @@ def _is_safe_generic_value(value: str) -> bool:
     return False
 
 
-def _detect_secret_types(text: str) -> list[tuple[str, str]]:
+def _detect_secret_types(text: str, *, path: str = "") -> list[tuple[str, str]]:
     detected: list[tuple[str, str]] = []
     for detector, severity, pattern in _SECRET_PATTERNS:
         if pattern.search(text):
@@ -146,12 +149,26 @@ def _detect_secret_types(text: str) -> list[tuple[str, str]]:
     assignment = _GENERIC_ASSIGNMENT_RE.match(text)
     if assignment:
         key = assignment.group("key").upper()
+        value = assignment.group("quoted_value") or assignment.group("plain_value") or ""
+        quoted = assignment.group("quoted_value") is not None
         looks_like_detector_constant = key.endswith(("_RE", "_REGEX", "_PATTERN", "_PATTERNS"))
-        looks_like_code_expression = bool(re.search(r"[:=]\s*[\"'][^\"']*[\"']\s*\+", text))
+        looks_like_metadata_name = key.endswith(("_PATH", "_FILE", "_FILENAME", "_NAME", "_ENV", "_VAR"))
+        code_suffix = Path(path).suffix.casefold()
+        code_file = code_suffix in {
+            ".py", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".java",
+            ".cs", ".go", ".rs", ".rb", ".php", ".swift", ".kt", ".kts",
+            ".c", ".cc", ".cpp", ".h", ".hpp", ".ps1", ".sh",
+        }
+        looks_like_code_reference = (
+            not quoted
+            and code_file
+            and bool(re.fullmatch(r"[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*", value))
+        )
         if (
             not looks_like_detector_constant
-            and not looks_like_code_expression
-            and not _is_safe_generic_value(assignment.group("value"))
+            and not looks_like_metadata_name
+            and not looks_like_code_reference
+            and not _is_safe_generic_value(value)
         ):
             detected.append(("generic-secret-assignment", "HIGH"))
     return detected
@@ -271,7 +288,7 @@ def _scan_patch(commit: str, patch: str) -> tuple[list[HistoryFinding], int]:
             continue
         if raw_line.startswith("+") and not raw_line.startswith("+++"):
             content = raw_line[1:]
-            for detector, severity in _detect_secret_types(content):
+            for detector, severity in _detect_secret_types(content, path=current_path):
                 findings.append(
                     HistoryFinding(
                         detector=detector,
@@ -307,6 +324,21 @@ def _deduplicate(findings: Iterable[HistoryFinding]) -> list[HistoryFinding]:
     return unique
 
 
+def _historical_sensitive_path_requires_warning(root: Path, commit: str, path: str) -> bool:
+    if not _is_sensitive_path(path):
+        return False
+    name = Path(path).name.casefold()
+    if name in {".npmrc", ".pypirc"} or name.startswith(".env."):
+        try:
+            text = _run_git_bytes(root, ["show", f"{commit}:{path}"]).decode(
+                "utf-8", errors="replace"
+            )
+        except ValueError:
+            text = None
+        return _secret_candidate_requires_warning(path, text)
+    return True
+
+
 def scan_git_history(
     root: Path,
     *,
@@ -330,7 +362,7 @@ def scan_git_history(
         message = _run_git_text(root, ["show", "-s", "--format=%B", commit])
         findings.extend(_scan_commit_message(commit, message))
         for path in _changed_paths(root, commit):
-            if _is_sensitive_path(path):
+            if _historical_sensitive_path_requires_warning(root, commit, path):
                 findings.append(
                     HistoryFinding(
                         detector="sensitive-filename",
