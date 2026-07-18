@@ -89,7 +89,9 @@ class GitHistorySecretScanTests(unittest.TestCase):
             (root / "patterns.py").write_text(
                 "SAFE_SECRET_VALUE_RE = re.compile(r'example')\n"
                 "_SECRET_PATTERNS = (re.compile(r'example'),)\n"
-                "secret = 'sk-proj-' + ('B' * 40)\n",
+                "secret = 'sk-proj-' + ('B' * 40)\n"
+                "currentToken = make_runtime_id()\n"
+                "currentPlaybackToken = int(value or 0)\n",
                 encoding="utf-8",
             )
             self._git(root, "add", "patterns.py")
