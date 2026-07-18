@@ -13,9 +13,11 @@ from .checks import _is_sensitive_path
 _ZERO_SHA_RE = re.compile(r"^0+$")
 _HUNK_RE = re.compile(r"^@@ -\d+(?:,\d+)? \+(?P<line>\d+)(?:,\d+)? @@")
 _GENERIC_ASSIGNMENT_RE = re.compile(
-    r"(?i)^\s*(?:export\s+)?(?P<key>[A-Z0-9_.-]*(?:api[_-]?key|access[_-]?key|"
-    r"client[_-]?secret|credential|password|passwd|private[_-]?key|secret|token)"
-    r"[A-Z0-9_.-]*)\s*[:=]\s*[\"']?(?P<value>[^\"'#\s]{8,})"
+    r"(?i)^\s*(?:export\s+)?(?P<key>(?:"
+    r"[A-Z0-9_.-]*(?:api[_-]?key|access[_-]?key|client[_-]?secret|credential|"
+    r"password|passwd|private[_-]?key|secret)[A-Z0-9_.-]*|"
+    r"[A-Z0-9_.-]*(?:api|auth|access|refresh|bearer|github|secret)[_-]?token[A-Z0-9_.-]*|"
+    r"token))\s*[:=]\s*[\"']?(?P<value>[^\"'#\s]{8,})"
 )
 _SAFE_VALUE_RE = re.compile(
     r"(?i)^(?:changeme|change_me|replace(?:-me|_me)?|your[_-].*|example|sample|"
