@@ -5,12 +5,20 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: repo-launch-doctor-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
   doctor:
     name: public-readiness
+    # Public repositories run this guard automatically at no Actions-minute cost.
+    # Private repositories keep the manual workflow_dispatch path available so
+    # ordinary PR updates do not consume the account's included Actions minutes.
+    if: github.event_name == 'workflow_dispatch' || github.event.repository.private == false
     runs-on: ubuntu-latest
     steps:
       - name: Check out target repository
@@ -61,3 +69,4 @@ jobs:
           name: repo-launch-doctor-report
           path: ${{ runner.temp }}/repo-launch-doctor
           if-no-files-found: warn
+          retention-days: 7
