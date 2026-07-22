@@ -19,9 +19,9 @@
 
 - Python 3.11以上
 - Gitは任意です。利用できる場合は追跡済み・ignore済みを正確に区別します
-- Windows、Linux、macOS
+- Windows、Linux
 
-外部Pythonパッケージは不要です。Windows・Ubuntu・macOS上のPython 3.11〜3.13をCI対象にしています。
+外部Pythonパッケージは不要です。Windows・Ubuntu上のPython 3.11〜3.13をCI対象にしています。
 
 ## 最短セットアップと使い方
 
@@ -53,7 +53,7 @@ run-doctor.bat C:\path\to\target-repo blocker
 run-doctor.bat C:\path\to\target-repo medium
 ```
 
-### Windows・Linux・macOS共通
+### Windows・Linux共通
 
 インストールせず、clone先から実行できます。
 
@@ -187,6 +187,8 @@ python -m repo_launch_doctor scan . --output reports/ci/current --fail-on high
 python -m repo_launch_doctor history-scan . --range "$BASE_SHA..$HEAD_SHA" --output reports/ci/history
 ```
 
+同梱の`.github/workflows/repo-launch-doctor.yml`は公開リポジトリ向けです。PRごとに自動実行し、連続して更新された場合は古い実行をキャンセルします。非公開リポジトリへは原則導入しません。誤ってコピーされた場合もPRジョブは起動せず、明示的な`workflow_dispatch`だけが実行可能です。
+
 終了コード:
 
 - `0`: 指定基準を超えるFindingなし
@@ -201,7 +203,7 @@ python -m unittest discover -s tests -v
 python -m compileall repo_launch_doctor tests
 ```
 
-CIではWindows・Ubuntu・macOS、Python 3.11〜3.13で検証します。Windowsでは別フォルダをカレントディレクトリにして`run-doctor.bat`を呼ぶテストも実行します。
+PRではWindows・UbuntuのPython 3.12だけを検証し、1回のPR更新を2ジョブに抑えます。Python 3.11〜3.13の全互換性検査は`workflow_dispatch`で必要なときだけ実行します。`push`起動は行わないため、PR検証とマージ後検証の二重実行はありません。連続更新時は古い実行をキャンセルします。Windowsでは別フォルダをカレントディレクトリにして`run-doctor.bat`を呼ぶテストも実行します。
 
 外部リポジトリでの評価方法と結果は、[現在の公開リポジトリ監査](audits/current/README.md)と[固定SHAの回帰ベンチマーク](benchmarks/README.md)に分離しています。
 
