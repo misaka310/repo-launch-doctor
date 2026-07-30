@@ -97,7 +97,20 @@ class GitHistorySecretScanTests(unittest.TestCase):
                 "password = os.getenv('APP_PASSWORD')\n",
                 encoding="utf-8",
             )
-            self._git(root, "add", "patterns.py")
+            playback_key = "to" + "ken"
+            runtime_counter = "playback" + "Token"
+            (root / "player.js").write_text(
+                f"const playback = {{\n  {playback_key}: ++state.{runtime_counter},\n}};\n",
+                encoding="utf-8",
+            )
+            workflow_key = "api" + "_key"
+            workflow = root / ".github" / "workflows" / "apply.yml"
+            workflow.parent.mkdir(parents=True)
+            workflow.write_text(
+                f"env:\n  {workflow_key}: runtimeApiKey\n",
+                encoding="utf-8",
+            )
+            self._git(root, "add", "patterns.py", "player.js", ".github/workflows/apply.yml")
             self._git(root, "commit", "-m", "add safe detector pattern")
             head = self._git(root, "rev-parse", "HEAD")
 
