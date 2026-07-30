@@ -156,6 +156,12 @@ def _detect_secret_types(text: str, *, path: str = "") -> list[tuple[str, str]]:
         looks_like_detector_constant = key.endswith(("_RE", "_REGEX", "_PATTERN", "_PATTERNS"))
         looks_like_metadata_name = key.endswith(("_PATH", "_FILE", "_FILENAME", "_NAME", "_ENV", "_VAR"))
         code_suffix = Path(path).suffix.casefold()
+        identifier_expression = bool(
+            re.fullmatch(
+                r"(?:\+\+|--)?[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*(?:\+\+|--)?",
+                value,
+            )
+        )
         code_file = code_suffix in {
             ".py", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".java",
             ".cs", ".go", ".rs", ".rb", ".php", ".swift", ".kt", ".kts",
@@ -164,7 +170,14 @@ def _detect_secret_types(text: str, *, path: str = "") -> list[tuple[str, str]]:
         looks_like_code_reference = (
             not quoted
             and code_file
-            and bool(re.fullmatch(r"[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*", value))
+            and identifier_expression
+        )
+        normalized_path = Path(path).as_posix().casefold()
+        looks_like_workflow_reference = (
+            not quoted
+            and code_suffix in {".yml", ".yaml"}
+            and normalized_path.startswith(".github/workflows/")
+            and identifier_expression
         )
         path_parts = {part.casefold() for part in Path(path).parts}
         looks_like_short_test_fixture = (
@@ -177,6 +190,7 @@ def _detect_secret_types(text: str, *, path: str = "") -> list[tuple[str, str]]:
             not looks_like_detector_constant
             and not looks_like_metadata_name
             and not looks_like_code_reference
+            and not looks_like_workflow_reference
             and not looks_like_short_test_fixture
             and not _is_safe_generic_value(value)
         ):
