@@ -17,3 +17,6 @@ doctor-output/
 .env.*
 !.env.example
 !.env.sample
+.ai-bridge/
+.ai-review/
+=/

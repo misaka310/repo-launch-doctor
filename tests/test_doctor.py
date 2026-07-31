@@ -4,10 +4,12 @@ import io
 import json
 import os
 import subprocess
+import sys
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 from repo_launch_doctor.cli import main
 from repo_launch_doctor.config import load_config
@@ -1094,6 +1096,30 @@ class RepoLaunchDoctorTests(unittest.TestCase):
         self.assertIn('pushd "%~dp0"', batch)
         self.assertIn('set "OUTPUT=', batch)
         self.assertIn('--fail-on "%FAIL_ON%"', batch)
+        self.assertIn("sys.version_info >= (3, 11)", batch)
+        self.assertIn("REPO_LAUNCH_DOCTOR_PYTHON", batch)
+        with patch.dict(
+            os.environ,
+            {"REPO_LAUNCH_DOCTOR_PYTHON": "inherited-python.exe"},
+        ):
+            env = self._windows_env_with_path("first", "second")
+        self.assertEqual(
+            ["PATH"], [key for key in env if key.upper() == "PATH"]
+        )
+        self.assertEqual(os.pathsep.join(("first", "second")), env["PATH"])
+        self.assertNotIn("REPO_LAUNCH_DOCTOR_PYTHON", env)
+
+    def test_windows_ci_launcher_uses_setup_python_interpreter(self) -> None:
+        workflow = (
+            Path(__file__).parents[1] / ".github" / "workflows" / "tests.yml"
+        ).read_text(encoding="utf-8")
+        self.assertEqual(2, workflow.count("id: setup-python"))
+        self.assertEqual(
+            2,
+            workflow.count(
+                "REPO_LAUNCH_DOCTOR_PYTHON: ${{ steps.setup-python.outputs.python-path }}"
+            ),
+        )
 
     @unittest.skipUnless(os.name == "nt", "Windows launcher smoke test")
     def test_batch_launcher_runs_from_another_directory(self) -> None:
@@ -1102,13 +1128,99 @@ class RepoLaunchDoctorTests(unittest.TestCase):
             completed = subprocess.run(
                 ["cmd.exe", "/c", str(repository / "run-doctor.bat"), str(repository), "none"],
                 cwd=temp_dir,
-                env={**os.environ, "CI": "1"},
+                env=self._windows_env_with_path(
+                    Path(os.environ["SystemRoot"]) / "System32",
+                    Path(os.environ["SystemRoot"])
+                    / "System32"
+                    / "WindowsPowerShell"
+                    / "v1.0",
+                    python_override=sys.executable,
+                ),
                 capture_output=True,
                 text=True,
                 timeout=30,
             )
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertIn("Static verdict:", completed.stdout)
+
+    @unittest.skipUnless(os.name == "nt", "Windows launcher smoke test")
+    def test_batch_launcher_returns_2_when_python_is_missing(self) -> None:
+        repository = Path(__file__).parents[1]
+        system_root = Path(os.environ["SystemRoot"])
+        with tempfile.TemporaryDirectory() as temp_dir:
+            completed = subprocess.run(
+                ["cmd.exe", "/c", str(repository / "run-doctor.bat"), str(repository), "none"],
+                cwd=temp_dir,
+                env=self._windows_env_with_path(
+                    system_root / "System32",
+                    system_root / "System32" / "WindowsPowerShell" / "v1.0",
+                ),
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+        self.assertEqual(completed.returncode, 2, completed.stderr)
+        self.assertIn("Python 3.11 or later was not found.", completed.stderr)
+
+    @unittest.skipUnless(os.name == "nt", "Windows launcher smoke test")
+    def test_batch_launcher_rejects_invalid_python_override(self) -> None:
+        repository = Path(__file__).parents[1]
+        system_root = Path(os.environ["SystemRoot"])
+        with tempfile.TemporaryDirectory() as temp_dir:
+            completed = subprocess.run(
+                ["cmd.exe", "/c", str(repository / "run-doctor.bat"), str(repository), "none"],
+                cwd=temp_dir,
+                env=self._windows_env_with_path(
+                    system_root / "System32",
+                    system_root / "System32" / "WindowsPowerShell" / "v1.0",
+                    python_override=Path(temp_dir) / "missing-python.exe",
+                ),
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+        self.assertEqual(completed.returncode, 2, completed.stderr)
+        self.assertIn("Python 3.11 or later was not found.", completed.stderr)
+
+    @unittest.skipUnless(os.name == "nt", "Windows launcher smoke test")
+    def test_batch_launcher_rejects_python_that_fails_version_check(self) -> None:
+        repository = Path(__file__).parents[1]
+        system_root = Path(os.environ["SystemRoot"])
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake_python = Path(temp_dir) / "python.exe"
+            fake_python.write_bytes(
+                (system_root / "System32" / "where.exe").read_bytes()
+            )
+            completed = subprocess.run(
+                ["cmd.exe", "/c", str(repository / "run-doctor.bat"), str(repository), "none"],
+                cwd=temp_dir,
+                env=self._windows_env_with_path(
+                    temp_dir,
+                    system_root / "System32",
+                    system_root / "System32" / "WindowsPowerShell" / "v1.0",
+                ),
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+        self.assertEqual(completed.returncode, 2, completed.stderr)
+        self.assertIn("Python 3.11 or later was not found.", completed.stderr)
+
+    @staticmethod
+    def _windows_env_with_path(
+        *paths: str | Path,
+        python_override: str | Path | None = None,
+    ) -> dict[str, str]:
+        env = {
+            key: value
+            for key, value in os.environ.items()
+            if key.upper() not in {"PATH", "REPO_LAUNCH_DOCTOR_PYTHON"}
+        }
+        env["CI"] = "1"
+        env["PATH"] = os.pathsep.join(str(path) for path in paths)
+        if python_override is not None:
+            env["REPO_LAUNCH_DOCTOR_PYTHON"] = str(python_override)
+        return env
 
     @staticmethod
     def _git(root: Path, *args: str) -> None:

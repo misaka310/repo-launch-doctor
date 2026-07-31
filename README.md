@@ -39,6 +39,8 @@ run-doctor.bat C:\path\to\target-repo
 reports/<repo-name>-<timestamp>/report.html
 ```
 
+CIなどで使用するPythonを固定する場合は、`REPO_LAUNCH_DOCTOR_PYTHON`へPython 3.11以上の実行ファイルの絶対パスを指定できます。未指定時は従来どおり`py -3`、次に`python`を探索します。
+
 引数を省略するとRepo Launch Doctor自身を検査します。
 
 ```bat
