@@ -4,7 +4,7 @@
 
 公開前のローカルリポジトリを**読み取り専用**で静的検査し、初見ユーザーが起動方法を見つけられる構成か、ドキュメントと実装が噛み合っているか、公開してはいけないファイルが混ざっていないかをレポートするPython CLIです。
 
-対象リポジトリに書かれたコマンドは実行しません。実際の起動成功を保証するツールではなく、起動入口・検証入口・公開構成の不備を事前に発見するためのツールです。検査結果はJSON・Markdown・HTMLで保存します。
+対象リポジトリに書かれたコマンドは実行しません。実際の起動成功を保証するツールではなく、起動入口・検証入口・公開構成の不備を事前に見つけるためのツールです。結果はJSON・Markdown・HTMLで保存します。
 
 ## こんなときに使います
 
@@ -18,28 +18,26 @@
 ## 必要環境
 
 - Python 3.11以上
-- Gitは任意です。利用できる場合は追跡済み・ignore済みを正確に区別します
-- Windows、Linux
+- WindowsまたはLinux
+- Gitは任意。利用できる場合は追跡済み・ignore済みを正確に区別します
 
-外部Pythonパッケージは不要です。Windows・Ubuntu上のPython 3.11〜3.13をCI対象にしています。
+外部Pythonパッケージは不要です。
 
-## 最短セットアップと使い方
+## 最短セットアップ
 
 ### Windows
 
-cloneまたはZIP展開後、検査対象フォルダを渡します。検査したいフォルダを`run-doctor.bat`へドラッグ＆ドロップしても実行できます。
+cloneまたはZIP展開後、検査対象フォルダを渡します。対象フォルダを`run-doctor.bat`へドラッグ＆ドロップしても実行できます。
 
 ```bat
 run-doctor.bat C:\path\to\target-repo
 ```
 
-処理後、時刻付きフォルダへレポートを保存し、HTMLを開きます。
+処理後、時刻付きフォルダへレポートを保存してHTMLを開きます。
 
 ```text
 reports/<repo-name>-<timestamp>/report.html
 ```
-
-CIなどで使用するPythonを固定する場合は、`REPO_LAUNCH_DOCTOR_PYTHON`へPython 3.11以上の実行ファイルの絶対パスを指定できます。未指定時は従来どおり`py -3`、次に`python`を探索します。
 
 引数を省略するとRepo Launch Doctor自身を検査します。
 
@@ -54,6 +52,8 @@ run-doctor.bat C:\path\to\target-repo none
 run-doctor.bat C:\path\to\target-repo blocker
 run-doctor.bat C:\path\to\target-repo medium
 ```
+
+使用するPythonを固定する場合は、`REPO_LAUNCH_DOCTOR_PYTHON`へPython 3.11以上の実行ファイルの絶対パスを設定します。
 
 ### Windows・Linux共通
 
@@ -105,34 +105,27 @@ report.md     GitHub Issueやレビューへの貼り付け用
 report.html   人が確認する折り畳み式レポート
 ```
 
-実際の自己診断レポート:
-
 ![Repo Launch DoctorのPASSレポート](docs/report-preview.png)
 
-共有時の個人情報漏えいを避けるため、レポートには既定で対象リポジトリ名だけを記録します。絶対パスが必要な場合のみ明示的に指定します。
+共有時の個人情報漏えいを避けるため、レポートには既定で対象リポジトリ名だけを記録します。絶対パスが必要な場合のみ明示します。
 
 ```bash
 repo-launch-doctor scan . --include-absolute-path
 ```
 
-JSONには`schema_version`が含まれます。現在のスキーマは`1.0`です。
-
-## 実際に確認するもの
+## 主な検査対象
 
 - READMEの要件、セットアップ、使い方、検証、制限事項
-- ルートのランチャー、`package.json`/Python CLI、Makefile、Docker、Go、ブラウザ拡張、READMEに明記された一般的な起動入口
+- ルートのランチャーと、READMEに記載された一般的な起動入口
 - Markdown内の相対リンク・画像リンク
-- Git追跡状態を含む秘密情報らしいファイル名と、`.env.*`・`.npmrc`などの機密設定項目（値はレポートへ出力しません）
+- Git追跡状態を含む秘密情報らしいファイル名と機密設定項目
 - Git追跡済みのログ、キャッシュ、依存ツリー、仮想環境、build成果物
-- Webアプリのfavicon宣言と実ファイル
-- 動的Webアプリの`/health`・`/status`
-- 実行コード内のポートとhealth endpoint
+- Webアプリのfavicon、`/health`、`/status`、実行コード内のポート
 - 実在するtest・lint・typecheck・buildコマンド
 - LICENSE、SECURITY、必要な設定例
-- 検査範囲、読み飛ばした理由、抑制したFinding、上限到達、読取失敗
-- `auto`設定時のWeb・静的Web・CLI・library・docsの推定
+- 検査範囲、除外範囲、上限到達、読取失敗、内部チェック失敗
 
-ポートやhealth endpointの検出では、`tests/`、`docs/`、`examples/`、`reports/`のサンプル値を実機能として数えません。
+秘密情報候補の値はレポートへ出力しません。
 
 ## プロジェクト別設定
 
@@ -153,7 +146,7 @@ JSONには`schema_version`が含まれます。現在のスキーマは`1.0`で�
 }
 ```
 
-設定例は[.repo-launch-doctor.example.json](.repo-launch-doctor.example.json)、全項目は[設定リファレンス](docs/configuration.md)を参照してください。
+設定例は[.repo-launch-doctor.example.json](.repo-launch-doctor.example.json)、全項目は[設定リファレンス](docs/configuration.md)、check ID一覧は[チェックリファレンス](docs/check-reference.md)を参照してください。
 
 重要な挙動:
 
@@ -163,24 +156,22 @@ JSONには`schema_version`が含まれます。現在のスキーマは`1.0`で�
 - 抑制したFindingと除外範囲はレポートへ明示します
 - 自動判定が合わない場合は`project_type`を明示してください
 
-check ID一覧は[チェックリファレンス](docs/check-reference.md)にあります。
-
 ## Git履歴を検査する
 
-現在の作業ツリーとは別に、選択したコミットで追加されたテキスト、秘密情報らしいファイル名、コミットメッセージを検査できます。検出した値そのものはレポートへ出しません。
+現在の作業ツリーとは別に、選択したコミットで追加されたテキスト、秘密情報らしいファイル名、コミットメッセージを検査できます。
 
 ```bash
 # PRやpush対象の範囲
 python -m repo_launch_doctor history-scan . --range origin/main..HEAD --output reports/history
 
-# ローカル参照から到達できる全履歴を一度確認
+# ローカル参照から到達できる全履歴
 python -m repo_launch_doctor history-scan . --all-history --output reports/full-history
 
-# pre-push hookなどが作成したSHA一覧を検査
+# pre-push hookなどが作成したSHA一覧
 python -m repo_launch_doctor history-scan . --commits-file commits.txt --output reports/outgoing
 ```
 
-`history-scan`は、秘密値を追加した後のコミットで削除していても、追加時のコミットを検査対象に含めれば検出します。秘密鍵ヘッダー、主要サービスのトークン形式、認証情報入りURL、機密キーへの値代入、`.env`などの秘密情報らしい追跡ファイルを対象にします。
+秘密値を追加した後のコミットで削除していても、追加時のコミットを対象に含めれば検出します。
 
 ## CIで使う
 
@@ -189,15 +180,17 @@ python -m repo_launch_doctor scan . --output reports/ci/current --fail-on high
 python -m repo_launch_doctor history-scan . --range "$BASE_SHA..$HEAD_SHA" --output reports/ci/history
 ```
 
-同梱の`.github/workflows/repo-launch-doctor.yml`は公開リポジトリ向けです。PRごとに自動実行し、連続して更新された場合は古い実行をキャンセルします。非公開リポジトリへは原則導入しません。誤ってコピーされた場合もPRジョブは起動せず、明示的な`workflow_dispatch`だけが実行可能です。
+同梱の`.github/workflows/repo-launch-doctor.yml`は公開リポジトリ向けです。PRごとに実行し、連続更新時は古い実行をキャンセルします。非公開リポジトリでは明示的な`workflow_dispatch`だけを実行します。
 
 終了コード:
 
 - `0`: 指定基準を超えるFindingなし
-- `1`: 現在状態の指定基準以上、または履歴内の秘密情報候補を検出
+- `1`: 指定基準以上、または履歴内の秘密情報候補を検出
 - `2`: 設定エラー、Git範囲解決失敗、入出力エラー、内部チェック失敗、検査未完了
 
-## 検証
+## 開発と評価資料
+
+通常の検証:
 
 ```bash
 python -m repo_launch_doctor scan . --output reports/self --fail-on high
@@ -205,32 +198,29 @@ python -m unittest discover -s tests -v
 python -m compileall repo_launch_doctor tests
 ```
 
-PRではWindows・UbuntuのPython 3.12だけを検証し、1回のPR更新を2ジョブに抑えます。Python 3.11〜3.13の全互換性検査は`workflow_dispatch`で必要なときだけ実行します。`push`起動は行わないため、PR検証とマージ後検証の二重実行はありません。連続更新時は古い実行をキャンセルします。Windowsでは別フォルダをカレントディレクトリにして`run-doctor.bat`を呼ぶテストも実行します。
-
-外部リポジトリでの評価方法と結果は、[現在の公開リポジトリ監査](audits/current/README.md)と[固定SHAの回帰ベンチマーク](benchmarks/README.md)に分離しています。
+CI構成、対応Python、公開リポジトリ監査、固定SHAベンチマーク、precision・recallの解釈と再現手順は、[評価・研究資料](docs/evaluation.md)へ分離しています。
 
 ## 安全性
 
 - 対象リポジトリを変更しません
 - 対象リポジトリに記載されたコマンドを実行しません
 - 秘密情報候補の内容をレポートへ転記しません
-- 通常スキャンでは`.git`、依存ツリー、モデル、メディア、大容量ファイルの内容を読みません。`history-scan`はGitからコミットメッセージとテキスト差分だけを読みます
-- ファイル名とGit追跡状態は内容読取とは分離して確認します
+- 通常スキャンでは`.git`、依存ツリー、モデル、メディア、大容量ファイルの内容を読みません
+- `history-scan`はGitからコミットメッセージとテキスト差分だけを読みます
 - シンボリックリンクを追跡しません
-- 上限到達、テキスト読取失敗、内部チェック失敗を成功扱いしません
+- 上限到達、読取失敗、内部チェック失敗を成功扱いしません
 
 脆弱性報告は[SECURITY.md](SECURITY.md)を参照してください。
 
 ## 制限事項
 
 - 静的検査です。READMEに書かれたコマンドが実際に成功するかは判定しません
-- `history-scan`は既知形式と機密キーへの値代入を静的検出しますが、あらゆる秘密値・業務機密・未知形式を完全には判定できません
-- バイナリ差分、画像、PDF、ZIP、モデルなどの内部に埋め込まれた秘密情報は内容検査しません。レポートにスキップ件数を表示します
+- あらゆる秘密値・業務機密・未知形式を完全には判定できません
+- バイナリ、画像、PDF、ZIP、モデル内部の秘密情報は内容検査しません
 - 独自ビルドシステムや動的に生成される入口は検出できない場合があります
-- 自動プロジェクト種別判定は推定です。誤判定する場合は設定で明示してください
-- faviconは宣言とファイルの存在を確認しますが、ブラウザ表示までは確認しません
+- 自動プロジェクト種別判定は推定です
 - スコアはセキュリティ監査、脆弱性診断、法務確認の代替ではありません
-- Gitがないフォルダでは追跡状態を区別できません。`.gitignore`の一般的な規則は補助利用します
+- Gitがないフォルダでは追跡状態を区別できません
 
 ## Contributing
 
