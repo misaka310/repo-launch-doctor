@@ -2,22 +2,20 @@
 
 [![Tests](https://github.com/misaka310/repo-launch-doctor/actions/workflows/tests.yml/badge.svg)](https://github.com/misaka310/repo-launch-doctor/actions/workflows/tests.yml)
 
-公開前のローカルリポジトリを**読み取り専用**で静的検査し、初見ユーザーが起動方法を見つけられる構成か、ドキュメントと実装が噛み合っているか、公開してはいけないファイルが混ざっていないかをレポートするPython CLIです。
+公開前のローカルリポジトリを**読み取り専用**で静的検査し、初見ユーザーが起動方法を見つけられるか、READMEと実装が噛み合っているか、公開してはいけないファイルが混ざっていないかをレポートするPython CLIです。
 
-対象リポジトリに書かれたコマンドは実行しません。実際の起動成功を保証するツールではなく、起動入口・検証入口・公開構成の不備を事前に見つけるためのツールです。結果はJSON・Markdown・HTMLで保存します。
+対象リポジトリに書かれたコマンドは実行しません。実際の起動成功を保証するツールではなく、公開前に構成・説明・追跡ファイルの不備を見つけるためのツールです。結果はJSON・Markdown・HTMLで保存します。
 
 <p align="center">
   <img src="docs/images/system-overview.png" alt="Repo Launch Doctorの検査フロー概要" width="100%">
 </p>
-
-対象リポジトリを読み取り専用で検査し、Finding・判定・各形式のレポートへまとめる流れを示しています。
 
 ## こんなときに使います
 
 - GitHubで公開する前に、README・LICENSE・SECURITY・設定例を確認したい
 - clone後の起動入口やテスト入口が見つけやすいか確認したい
 - `.env`、秘密鍵、Cookie、ローカル設定が追跡されていないか確認したい
-- `build/`、ログ、キャッシュ、仮想環境などがGitへ混入していないか確認したい
+- ログ、キャッシュ、仮想環境、build成果物がGitへ混入していないか確認したい
 - Markdownの画像・相対リンク切れを確認したい
 - Webアプリのfaviconやhealth endpoint不足を確認したい
 
@@ -51,19 +49,11 @@ reports/<repo-name>-<timestamp>/report.html
 run-doctor.bat
 ```
 
-既定では`HIGH`以上を検出すると終了コード1になります。第2引数で変更できます。
-
-```bat
-run-doctor.bat C:\path\to\target-repo none
-run-doctor.bat C:\path\to\target-repo blocker
-run-doctor.bat C:\path\to\target-repo medium
-```
-
-使用するPythonを固定する場合は、`REPO_LAUNCH_DOCTOR_PYTHON`へPython 3.11以上の実行ファイルの絶対パスを設定します。
+既定では`HIGH`以上を検出すると終了コード1です。判定基準を変える場合は第2引数へ`none`、`blocker`、`medium`などを指定します。
 
 ### Windows・Linux共通
 
-インストールせず、clone先から実行できます。
+インストールせずclone先から実行できます。
 
 ```bash
 python -m repo_launch_doctor scan /path/to/target-repo --output reports/target --fail-on high
@@ -76,12 +66,6 @@ python -m pip install .
 repo-launch-doctor scan /path/to/target-repo --output reports/target --fail-on high
 ```
 
-バージョン確認:
-
-```bash
-repo-launch-doctor --version
-```
-
 ## 判定の読み方
 
 | 判定 | 意味 |
@@ -89,19 +73,9 @@ repo-launch-doctor --version
 | `PASS` | 指摘事項なし |
 | `PASS_WITH_NOTES` | 公開を止める問題はないが、改善点あり |
 | `FAIL` | `BLOCKER`または`HIGH`があり、公開前に修正が必要 |
-| `INCOMPLETE` | 上限到達、読取失敗、内部チェック失敗などにより検査未完了。公開判断には使わない |
+| `INCOMPLETE` | 上限到達、読取失敗、内部チェック失敗などで検査未完了。公開判断には使わない |
 
-`INCOMPLETE`ではスコアを表示しません。`--fail-on none`を指定しても終了コード2になります。
-
-| 重要度 | 意味 |
-|---|---|
-| `BLOCKER` | Git追跡済み秘密情報候補や、検査未完了など公開判断を止める問題 |
-| `HIGH` | 起動入口不足、READMEの重大不足、リンク切れ、未保護の秘密情報候補 |
-| `MEDIUM` | 検証・保守・公開品質を弱くする問題 |
-| `LOW` | 分かりやすさや事故防止の改善点 |
-| `INFO` | 情報 |
-
-点数だけではなく、個別のFindingと`scan_complete`を確認してください。
+`INCOMPLETE`ではスコアを表示しません。点数だけでなく、個別のFindingと`scan_complete`を確認してください。
 
 ## 出力
 
@@ -113,11 +87,7 @@ report.html   人が確認する折り畳み式レポート
 
 ![Repo Launch DoctorのPASSレポート](docs/report-preview.png)
 
-共有時の個人情報漏えいを避けるため、レポートには既定で対象リポジトリ名だけを記録します。絶対パスが必要な場合のみ明示します。
-
-```bash
-repo-launch-doctor scan . --include-absolute-path
-```
+共有時の個人情報漏えいを避けるため、レポートには既定で対象リポジトリ名だけを記録します。絶対パスが必要な場合だけ`--include-absolute-path`を指定します。
 
 ## 主な検査対象
 
@@ -133,38 +103,9 @@ repo-launch-doctor scan . --include-absolute-path
 
 秘密情報候補の値はレポートへ出力しません。
 
-## プロジェクト別設定
-
-対象リポ直下へ`.repo-launch-doctor.json`を置きます。
-
-```json
-{
-  "project_type": "web",
-  "ignore_paths": [],
-  "ignore_checks": [],
-  "expected_ports": [8717],
-  "expected_start_commands": ["start.bat"],
-  "expected_health_endpoints": ["/health"],
-  "accepted_generated_paths": ["public/generated-demo/**"],
-  "max_files": 10000,
-  "max_paths": 100000,
-  "max_file_bytes": 1000000
-}
-```
-
-設定例は[.repo-launch-doctor.example.json](.repo-launch-doctor.example.json)、全項目は[設定リファレンス](docs/configuration.md)、check ID一覧は[チェックリファレンス](docs/check-reference.md)を参照してください。
-
-重要な挙動:
-
-- 未知の設定キー・check IDはエラーにします
-- `secret-risk-file`、`scan-incomplete`、`internal-check-error`は無効化できません
-- `ignore_paths`は内容読取の除外です。Git追跡済みの秘密情報候補を隠しません
-- 抑制したFindingと除外範囲はレポートへ明示します
-- 自動判定が合わない場合は`project_type`を明示してください
-
 ## Git履歴を検査する
 
-現在の作業ツリーとは別に、選択したコミットで追加されたテキスト、秘密情報らしいファイル名、コミットメッセージを検査できます。
+通常の`scan`とは別に、選択したコミットで追加されたテキスト、秘密情報らしいファイル名、コミットメッセージを検査できます。
 
 ```bash
 # PRやpush対象の範囲
@@ -172,65 +113,32 @@ python -m repo_launch_doctor history-scan . --range origin/main..HEAD --output r
 
 # ローカル参照から到達できる全履歴
 python -m repo_launch_doctor history-scan . --all-history --output reports/full-history
-
-# pre-push hookなどが作成したSHA一覧
-python -m repo_launch_doctor history-scan . --commits-file commits.txt --output reports/outgoing
 ```
 
 秘密値を追加した後のコミットで削除していても、追加時のコミットを対象に含めれば検出します。
 
-## CIで使う
+## プロジェクト別設定とCI
 
-```bash
-python -m repo_launch_doctor scan . --output reports/ci/current --fail-on high
-python -m repo_launch_doctor history-scan . --range "$BASE_SHA..$HEAD_SHA" --output reports/ci/history
-```
+対象リポ直下の`.repo-launch-doctor.json`で、プロジェクト種別、期待する起動コマンド・ポート・health endpoint、読取除外、上限を設定できます。未知の設定キーやcheck IDはエラーになり、秘密情報・検査未完了・内部エラーの検査は無効化できません。
 
-同梱の`.github/workflows/repo-launch-doctor.yml`は公開リポジトリ向けです。PRごとに実行し、連続更新時は古い実行をキャンセルします。非公開リポジトリでは明示的な`workflow_dispatch`だけを実行します。
+- [設定例](.repo-launch-doctor.example.json)
+- [設定リファレンス](docs/configuration.md)
+- [check ID一覧](docs/check-reference.md)
+- [CI・評価・再現手順](docs/evaluation.md)
 
-終了コード:
+CIでは現在ツリーの`scan`と、PR範囲の`history-scan`を組み合わせます。同梱の`.github/workflows/repo-launch-doctor.yml`は公開リポジトリ向けです。
 
-- `0`: 指定基準を超えるFindingなし
-- `1`: 指定基準以上、または履歴内の秘密情報候補を検出
-- `2`: 設定エラー、Git範囲解決失敗、入出力エラー、内部チェック失敗、検査未完了
+## 安全性と制限
 
-## 開発と評価資料
-
-通常の検証:
-
-```bash
-python -m repo_launch_doctor scan . --output reports/self --fail-on high
-python -m unittest discover -s tests -v
-python -m compileall repo_launch_doctor tests
-```
-
-CI構成、対応Python、公開リポジトリ監査、固定SHAベンチマーク、precision・recallの解釈と再現手順は、[評価・研究資料](docs/evaluation.md)へ分離しています。
-
-## 安全性
-
-- 対象リポジトリを変更しません
-- 対象リポジトリに記載されたコマンドを実行しません
+- 対象リポジトリを変更せず、READMEに書かれたコマンドも実行しません
 - 秘密情報候補の内容をレポートへ転記しません
 - 通常スキャンでは`.git`、依存ツリー、モデル、メディア、大容量ファイルの内容を読みません
 - `history-scan`はGitからコミットメッセージとテキスト差分だけを読みます
-- シンボリックリンクを追跡しません
-- 上限到達、読取失敗、内部チェック失敗を成功扱いしません
-
-脆弱性報告は[SECURITY.md](SECURITY.md)を参照してください。
-
-## 制限事項
-
-- 静的検査です。READMEに書かれたコマンドが実際に成功するかは判定しません
-- あらゆる秘密値・業務機密・未知形式を完全には判定できません
+- 静的検査のため、READMEのコマンドが実際に成功するかは判定しません
 - バイナリ、画像、PDF、ZIP、モデル内部の秘密情報は内容検査しません
-- 独自ビルドシステムや動的に生成される入口は検出できない場合があります
-- 自動プロジェクト種別判定は推定です
 - スコアはセキュリティ監査、脆弱性診断、法務確認の代替ではありません
-- Gitがないフォルダでは追跡状態を区別できません
 
-## Contributing
-
-不具合報告や改善提案は歓迎します。[CONTRIBUTING.md](CONTRIBUTING.md)を参照してください。
+脆弱性報告は[SECURITY.md](SECURITY.md)、開発手順は[CONTRIBUTING.md](CONTRIBUTING.md)を参照してください。
 
 ## License
 
