@@ -6,6 +6,12 @@
 
 対象リポジトリに書かれたコマンドは実行しません。実際の起動成功を保証するツールではなく、起動入口・検証入口・公開構成の不備を事前に見つけるためのツールです。結果はJSON・Markdown・HTMLで保存します。
 
+<p align="center">
+  <img src="docs/images/system-overview.png" alt="Repo Launch Doctorの検査フロー概要" width="100%">
+</p>
+
+対象リポジトリを読み取り専用で検査し、Finding・判定・各形式のレポートへまとめる流れを示しています。
+
 ## こんなときに使います
 
 - GitHubで公開する前に、README・LICENSE・SECURITY・設定例を確認したい
