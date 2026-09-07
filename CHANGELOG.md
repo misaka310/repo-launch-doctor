@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Detect tracked machine-specific shared-Skill paths and internal `docs/superpowers/` agent plans as HIGH repository-boundary findings.
 - Make `HIGH` the default `scan --fail-on` threshold so a displayed `FAIL` does not silently return success in the default CLI path.
 - Label verdicts and scores as static readiness results instead of implying runtime or security assurance.
 - Add machine-readable `assurance_level` and per-area `coverage` metadata, including explicit `not_checked` states for runtime, dependencies, GitHub settings, Git history, and binary contents.
@@ -48,6 +49,9 @@
 - 共有用レポートから絶対パスを既定で除外
 - PASS/FAIL/INCOMPLETE、検査範囲、抑制Finding、折り畳みHTMLを追加
 - Windowsランチャーを呼び出し元フォルダに依存しない構成へ変更し、出力を時刻別に分離
-- 未知の設定キーと無効なcheck IDをエラー化
-- Windows、Ubuntu、macOS × Python 3.11〜3.13のCI matrixを追加
-- GitなしのZIP展開先で `.gitignore` の一般的な規則を補助利用し、判定元をレポートへ表示
+
+## 0.1.0
+
+- 初版
+- README、起動入口、秘密情報候補、生成物、Web公開準備を静的検査
+- JSON / Markdown / HTMLレポートを生成

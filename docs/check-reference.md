@@ -28,6 +28,8 @@
 | Check ID | 既定の重要度 |
 |---|---:|
 | `generated-artifact-present` | 追跡済み/Git不明はMEDIUM、未追跡かつignoreなしはLOW |
+| `workspace-specific-dependency` | HIGH |
+| `internal-agent-plan-tracked` | HIGH |
 | `missing-license` | MEDIUM |
 | `missing-security-doc` | LOW |
 | `missing-config-example` | ローカル設定が必要と見られる場合にLOW |
@@ -50,5 +52,9 @@
 `secret-risk-file`は、秘密情報らしいファイルをGit状態と合わせて確認します。`.env.example`など明示的な例示ファイルは除外します。追跡済みの`.env.*`、`.npmrc`、`.pypirc`は、機密性のあるキーに空でない非テンプレート値が設定されている場合に警告します。PEM・KEY・PFX・P12などの秘密鍵を含み得る形式は、内容をレポートへ転記せずファイル単位で警告します。これは専用シークレットスキャナーではなく、既知のトークン形式を網羅的に探索するものではありません。
 
 `generated-artifact-present`は、Pythonキャッシュ、依存ツリー、生成出力に加えて、追跡済みの`.idea`や`.DS_Store`などローカル環境由来の項目を検出します。一方、`build/`という名前でも、追跡済みのTypeScript・YAML・Props・スクリプトなどが置かれたソース／設定ディレクトリは生成物として扱いません。
+
+`workspace-specific-dependency`は、Git追跡された通常のプロジェクト文書・実装・スクリプトが、Windowsの絶対パス、ユーザープロファイル相対パス、またはユーザーホーム配下にあるエージェント用shared Skillディレクトリを必須依存にしている場合に出します。共有Skillはエージェント側の作業支援であり、cloneしたリポジトリの通常build・test・runtime依存へしないことを意図しています。テストfixture、examples、benchmarks、audits内の検査用文字列はこのcheckから除外します。
+
+`internal-agent-plan-tracked`は、`docs/superpowers/`配下に内部エージェント向け計画書がGit追跡されている場合に出します。製品として残すべき設計判断は通常の`docs/`へ整理し、一時的なagent実行計画を公開・配布用treeへ混ぜないことを意図しています。
 
 `broken-markdown-link`は、インラインコードとフェンスコード内のMarkdown例を検査対象から外し、`about:`・`cid:`などURIスキーム付き参照と、拡張子のない`/getting-started`のようなサイト内ルートをローカルファイルとして扱いません。`/assets/image.png`のような拡張子付きルート相対ファイルは検査し、同じMarkdownファイル内の同一リンクは1件にまとめます。
