@@ -117,10 +117,6 @@ python -m repo_launch_doctor history-scan . --all-history --output reports/full-
 
 秘密値を追加した後のコミットで削除していても、追加時のコミットを対象に含めれば検出します。
 
-## CodexProのリモート送信境界
-
-このツールを自分のリポジトリで使うだけなら読み飛ばして構いません。作者のワークスペース内で複数リポジトリの共有`pre-push`ゲートとして運用する際の設計方針は[CodexProのリモート送信境界](docs/operational-integration.md)にまとめています。
-
 ## プロジェクト別設定とCI
 
 対象リポ直下の`.repo-launch-doctor.json`で、プロジェクト種別、期待する起動コマンド・ポート・health endpoint、読取除外、上限を設定できます。未知の設定キーやcheck IDはエラーになり、秘密情報・検査未完了・内部エラーの検査は無効化できません。
