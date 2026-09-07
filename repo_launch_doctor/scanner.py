@@ -14,6 +14,30 @@ from .models import Finding, ScanReport
 from .reporters import write_reports
 
 
+_WORKSPACE_DEPENDENCY_EXCLUDED_PREFIXES = (
+    "audits/",
+    "benchmarks/",
+    "examples/",
+    "fixtures/",
+    "test/",
+    "tests/",
+)
+_SHARED_SKILL_PATH_PATTERNS = (
+    re.compile(
+        r"\b[A-Za-z]:[\\/][^\r\n\"'`]*?[\\/]\.agents[\\/]skills(?:[\\/]|$)",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"%USERPROFILE%[\\/]\.agents[\\/]skills(?:[\\/]|$)",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"/(?:home|Users)/[^/\r\n\"'`]+/\.agents/skills(?:/|$)",
+        re.IGNORECASE,
+    ),
+)
+
+
 def _read_optional_text(inventory: Inventory, relative: str) -> str:
     path = inventory.root / relative
     if relative not in inventory.all_file_paths:
@@ -199,6 +223,67 @@ def _preflight_text_errors(inventory: Inventory) -> list[str]:
     return sorted(errors)
 
 
+def _check_repository_boundaries(inventory: Inventory) -> list[Finding]:
+    tracked = inventory.tracked_files
+    if tracked is None:
+        return []
+
+    findings: list[Finding] = []
+    for relative in sorted(tracked, key=str.casefold):
+        normalized = relative.replace("\\", "/")
+        lowered = normalized.casefold()
+
+        if lowered.startswith("docs/superpowers/"):
+            findings.append(
+                Finding(
+                    "internal-agent-plan-tracked",
+                    "HIGH",
+                    "Internal agent planning material is tracked",
+                    normalized,
+                    "A tracked file is stored under docs/superpowers/, which is an internal agent-planning location rather than a product document surface.",
+                    "Remove internal agent planning material from the repository or move durable product decisions into normal repository documentation.",
+                )
+            )
+            continue
+
+        if lowered.startswith(_WORKSPACE_DEPENDENCY_EXCLUDED_PREFIXES):
+            continue
+        text = _read_optional_text(inventory, normalized)
+        if not text:
+            continue
+        if any(pattern.search(text) for pattern in _SHARED_SKILL_PATH_PATTERNS):
+            findings.append(
+                Finding(
+                    "workspace-specific-dependency",
+                    "HIGH",
+                    "Tracked project content depends on a machine-specific shared Skill path",
+                    normalized,
+                    "Tracked project text requires an agent-workspace Skill path that is outside the repository.",
+                    "Keep shared Skills agent-side only and make the repository's normal clone/build/test/runtime path self-contained or based on a stable public interface.",
+                )
+            )
+    return findings
+
+
+def _apply_repository_boundary_suppression(
+    findings: list[Finding], metadata: dict[str, object], config: DoctorConfig
+) -> None:
+    boundary_ids = {"internal-agent-plan-tracked", "workspace-specific-dependency"}
+    ignored = set(config.ignore_checks) & boundary_ids
+    if not ignored:
+        return
+
+    suppressed = [finding for finding in findings if finding.check_id in ignored]
+    findings[:] = [finding for finding in findings if finding.check_id not in ignored]
+    if not suppressed:
+        return
+
+    existing = dict(metadata.get("suppressed_findings", {}))
+    for finding in suppressed:
+        existing[finding.check_id] = int(existing.get(finding.check_id, 0)) + 1
+    metadata["suppressed_findings"] = dict(sorted(existing.items()))
+
+
 def _mark_incomplete(
     findings: list[Finding],
     metadata: dict[str, object],
@@ -276,6 +361,8 @@ def scan_repository(
         config, project_type=_detect_project_type(inventory, config)
     )
     findings, metadata = run_checks(inventory, effective_config)
+    findings.extend(_check_repository_boundaries(inventory))
+    _apply_repository_boundary_suppression(findings, metadata, effective_config)
     _mark_incomplete(findings, metadata, text_errors)
     _apply_static_assurance(metadata)
 
