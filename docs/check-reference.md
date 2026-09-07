@@ -53,7 +53,7 @@
 
 `generated-artifact-present`は、Pythonキャッシュ、依存ツリー、生成出力に加えて、追跡済みの`.idea`や`.DS_Store`などローカル環境由来の項目を検出します。一方、`build/`という名前でも、追跡済みのTypeScript・YAML・Props・スクリプトなどが置かれたソース／設定ディレクトリは生成物として扱いません。
 
-`workspace-specific-dependency`は、Git追跡された通常のプロジェクト文書・実装・スクリプトが、`C:\...\.agents\skills\...`、`%USERPROFILE%\.agents\skills\...`、ユーザーホーム配下の`.agents/skills/...`といった開発者個人のshared Skill配置を必須依存にしている場合に出します。共有Skillはエージェント側の作業支援であり、cloneしたリポジトリの通常build・test・runtime依存へしないことを意図しています。テストfixture、examples、benchmarks、audits内の検査用文字列はこのcheckから除外します。
+`workspace-specific-dependency`は、Git追跡された通常のプロジェクト文書・実装・スクリプトが、Windowsの絶対パス、ユーザープロファイル相対パス、またはユーザーホーム配下にあるエージェント用shared Skillディレクトリを必須依存にしている場合に出します。共有Skillはエージェント側の作業支援であり、cloneしたリポジトリの通常build・test・runtime依存へしないことを意図しています。テストfixture、examples、benchmarks、audits内の検査用文字列はこのcheckから除外します。
 
 `internal-agent-plan-tracked`は、`docs/superpowers/`配下に内部エージェント向け計画書がGit追跡されている場合に出します。製品として残すべき設計判断は通常の`docs/`へ整理し、一時的なagent実行計画を公開・配布用treeへ混ぜないことを意図しています。
 
