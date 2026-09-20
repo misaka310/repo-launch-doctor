@@ -9,6 +9,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 from .config import DoctorConfig
+from .constants import FIXTURE_TEXT_PREFIXES
 from .inventory import Inventory, path_matches
 from .models import Finding
 
@@ -114,6 +115,60 @@ RUNTIME_EXCLUDED_PREFIXES = (
     "test/",
     "tests/",
 )
+WINDOWS_ABSOLUTE_PATH_RE = re.compile(
+    r"(?<![A-Za-z0-9_])(?P<path>[A-Za-z]:[\\/][^\s\"'`<>|*?\n]+)"
+)
+POSIX_LOCAL_PATH_RE = re.compile(
+    r"(?<![\w.~-])(?P<path>(?:/home|/Users|/root|/media|/mnt/[a-z]|/cygdrive/[a-z])"
+    r"(?:/[^\s\"'`<>|*?:;,\n]+)+)"
+)
+LOCAL_PATH_ROOT_SEGMENTS = frozenset(
+    {"home", "users", "root", "media", "mnt", "cygdrive"}
+)
+LOCAL_PATH_PLACEHOLDER_MARKER_RE = re.compile(r"[<>{}%*$]|\.\.\.|…")
+LOCAL_PATH_PLACEHOLDER_SEGMENTS = frozenset(
+    {
+        "bar",
+        "baz",
+        "dummy",
+        "example",
+        "examples",
+        "foo",
+        "me",
+        "my-project",
+        "my-repo",
+        "name",
+        "path",
+        "path-to-repo",
+        "paths",
+        "placeholder",
+        "project-name",
+        "repo-name",
+        "sample",
+        "samples",
+        "someone",
+        "target-repo",
+        "to",
+        "user",
+        "user-name",
+        "user_name",
+        "you",
+        "your",
+        "your-name",
+        "your_name",
+        "yourname",
+        "yourproject",
+        "yourrepo",
+    }
+)
+ASCII_PATH_SEGMENT_RE = re.compile(r"[A-Za-z0-9 ._+()~#@&'-]+")
+FILE_EXTENSION_RE = re.compile(r"\.[A-Za-z0-9]{1,8}$")
+PATH_TRAILING_PUNCTUATION = ".,;:!?'\")]}、。，．・「」（）"
+IPV4_RE = re.compile(
+    r"(?<![\w.-])(?P<a>\d{1,3})\.(?P<b>\d{1,3})\.(?P<c>\d{1,3})\.(?P<d>\d{1,3})"
+    r"(?![\w.-])"
+)
+MAX_REPORTED_LINE_NUMBERS = 5
 MARKDOWN_HEADING_RE = re.compile(r"^ {0,3}#{1,6}[ \t]+(?P<title>.+?)\s*#*\s*$")
 
 
@@ -770,6 +825,172 @@ def _check_secret_risk(inventory: Inventory) -> list[Finding]:
     return findings
 
 
+def _local_path_segments(path: str) -> tuple[str, list[str]]:
+    """Split a local absolute path into its machine root and the segments below it."""
+    normalized = path.replace("\\", "/")
+    segments = [segment for segment in normalized.split("/") if segment]
+    if not segments:
+        return "", []
+    first = segments[0]
+    if re.fullmatch(r"[A-Za-z]:", first):
+        return f"{first.upper()}\\", segments[1:]
+    lowered = first.casefold()
+    if lowered in LOCAL_PATH_ROOT_SEGMENTS:
+        rest = segments[1:]
+        if lowered in {"mnt", "cygdrive"} and rest and len(rest[0]) == 1:
+            rest = rest[1:]
+        return f"/{first}/", rest
+    return "", segments
+
+
+def _is_placeholder_local_path(path: str) -> bool:
+    if LOCAL_PATH_PLACEHOLDER_MARKER_RE.search(path):
+        return True
+    _, segments = _local_path_segments(path)
+    return any(
+        segment.casefold() in LOCAL_PATH_PLACEHOLDER_SEGMENTS
+        for segment in segments[:2]
+    )
+
+
+def _starts_inside_url(line: str, start: int) -> bool:
+    token = re.split(r"[\s\"'`(\[]", line[:start])[-1]
+    return "://" in token
+
+
+def _looks_like_real_local_path(segments: list[str]) -> bool:
+    """Prose such as 'C:\\ドライブのパス' must not be mistaken for a real path."""
+    if len(segments) >= 2:
+        return True
+    if not segments:
+        return False
+    return bool(
+        FILE_EXTENSION_RE.search(segments[0])
+        or ASCII_PATH_SEGMENT_RE.fullmatch(segments[0])
+    )
+
+
+def _local_paths_in_line(line: str) -> list[str]:
+    candidates: list[str] = []
+    for pattern in (WINDOWS_ABSOLUTE_PATH_RE, POSIX_LOCAL_PATH_RE):
+        for match in pattern.finditer(line):
+            if pattern is POSIX_LOCAL_PATH_RE and _starts_inside_url(line, match.start()):
+                continue
+            candidate = match.group("path").rstrip(PATH_TRAILING_PUNCTUATION)
+            root, segments = _local_path_segments(candidate)
+            if not root or not _looks_like_real_local_path(segments):
+                continue
+            if _is_placeholder_local_path(candidate):
+                continue
+            candidates.append(candidate)
+    return candidates
+
+
+def _classify_ipv4(octets: tuple[int, int, int, int]) -> str | None:
+    """Return 'private', 'public', or None for addresses that are not host-specific."""
+    first, second, third, _fourth = octets
+    if any(octet > 255 for octet in octets):
+        return None
+    if first in {0, 127} or first >= 224:
+        return None
+    if first == 169 and second == 254:
+        return None
+    if first == 10:
+        return "private"
+    if first == 172 and 16 <= second <= 31:
+        return "private"
+    if first == 192 and second == 168:
+        return "private"
+    if first == 100 and 64 <= second <= 127:
+        return "private"
+    if first == 192 and second == 0 and third == 2:
+        return None
+    if first == 198 and second == 51 and third == 100:
+        return None
+    if first == 203 and second == 0 and third == 113:
+        return None
+    if first == 198 and second in {18, 19}:
+        return None
+    return "public"
+
+
+def _ip_categories_in_line(line: str) -> list[str]:
+    categories: list[str] = []
+    for match in IPV4_RE.finditer(line):
+        parts = [match.group(name) for name in ("a", "b", "c", "d")]
+        if any(len(part) > 1 and part.startswith("0") for part in parts):
+            continue
+        category = _classify_ipv4(tuple(int(part) for part in parts))
+        if category is not None:
+            categories.append(category)
+    return categories
+
+
+def _line_summary(numbers: list[int]) -> str:
+    unique = sorted(set(numbers))
+    shown = ", ".join(str(number) for number in unique[:MAX_REPORTED_LINE_NUMBERS])
+    if len(unique) > MAX_REPORTED_LINE_NUMBERS:
+        return f"lines {shown} and {len(unique) - MAX_REPORTED_LINE_NUMBERS} more"
+    return f"line {shown}" if len(unique) == 1 else f"lines {shown}"
+
+
+def _is_checked_for_hardcoded_values(inventory: Inventory, relative: str) -> bool:
+    """Git-ignored local files are never pushed, so they are not publication risks."""
+    if relative.replace("\\", "/").casefold().startswith(FIXTURE_TEXT_PREFIXES):
+        return False
+    tracked = inventory.tracked_files is not None and relative in inventory.tracked_files
+    git_ignored = (
+        inventory.git_ignored_paths is not None
+        and relative in inventory.git_ignored_paths
+    )
+    return tracked or not git_ignored
+
+
+def _check_hardcoded_environment_values(
+    inventory: Inventory, texts: dict[str, str]
+) -> list[Finding]:
+    findings: list[Finding] = []
+    for relative in sorted(texts):
+        if not _is_checked_for_hardcoded_values(inventory, relative):
+            continue
+        local_paths: dict[str, list[int]] = {}
+        addresses: dict[str, list[int]] = {}
+        for number, line in enumerate(texts[relative].splitlines(), start=1):
+            for candidate in _local_paths_in_line(line):
+                root, _ = _local_path_segments(candidate)
+                local_paths.setdefault(root, []).append(number)
+            for category in _ip_categories_in_line(line):
+                addresses.setdefault(category, []).append(number)
+        for root, numbers in sorted(local_paths.items()):
+            findings.append(
+                _finding(
+                    "hardcoded-local-path",
+                    "MEDIUM",
+                    "Machine-specific absolute path is hardcoded",
+                    relative,
+                    f"Absolute local paths under '{root}' appear at {_line_summary(numbers)}. "
+                    "The paths themselves were not copied into the report.",
+                    "Read the location from configuration, an environment variable, or a command-line "
+                    "argument, and keep only relative or placeholder paths in the repository.",
+                )
+            )
+        for category, numbers in sorted(addresses.items()):
+            public = category == "public"
+            findings.append(
+                _finding(
+                    "hardcoded-ip-address",
+                    "MEDIUM" if public else "LOW",
+                    "Hardcoded IP address is embedded in the repository",
+                    relative,
+                    f"{'Globally routable' if public else 'Private network'} IPv4 literals appear at "
+                    f"{_line_summary(numbers)}. The addresses themselves were not copied into the report.",
+                    "Move the address into configuration or an environment variable, and use a hostname "
+                    "or a documentation-range address in examples.",
+                )
+            )
+    return findings
+
+
 def _generated_root(relative: str) -> str | None:
     normalized = relative.replace("\\", "/")
     if normalized.casefold().startswith(".github/"):
@@ -1128,6 +1349,7 @@ def run_checks(
         lambda: _check_markdown_links(inventory, texts),
         lambda: _check_entrypoints(texts, config, start_commands, project_type),
         lambda: _check_secret_risk(inventory),
+        lambda: _check_hardcoded_environment_values(inventory, texts),
         lambda: _check_generated_artifacts(inventory, config),
         lambda: _check_web_features(
             inventory, texts, config, health_endpoints

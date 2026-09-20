@@ -4,6 +4,17 @@ SCHEMA_VERSION = "1.0"
 PACKAGE_VERSION = "0.4.0"
 
 SEVERITY_ORDER = {"BLOCKER": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3, "INFO": 4}
+
+# Locations whose text is expected to quote machine-specific strings as test material.
+FIXTURE_TEXT_PREFIXES = (
+    "audits/",
+    "benchmarks/",
+    "examples/",
+    "fixtures/",
+    "test/",
+    "tests/",
+)
+
 SEVERITY_WEIGHTS = {"BLOCKER": 40, "HIGH": 20, "MEDIUM": 8, "LOW": 2, "INFO": 0}
 
 CHECK_IDS = frozenset(
@@ -13,6 +24,8 @@ CHECK_IDS = frozenset(
         "expected-port-missing",
         "expected-start-command-missing",
         "generated-artifact-present",
+        "hardcoded-ip-address",
+        "hardcoded-local-path",
         "internal-check-error",
         "markdown-link-outside-root",
         "missing-config-example",
