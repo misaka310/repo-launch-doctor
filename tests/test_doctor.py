@@ -489,6 +489,9 @@ class RepoLaunchDoctorTests(unittest.TestCase):
                     ".".join(("203", "0", "113", "9")),
                     "v" + ".".join(("1", "2", "3", "4")),
                     ".".join(("1", "2", "3", "4")) + "-beta",
+                    "<AssemblyVersion>" + ".".join(("1", "0", "0", "0")) + "</AssemblyVersion>",
+                    "<Version>" + ".".join(("2", "3", "4", "5")) + "</Version>",
+                    ".".join(("10", "0", "0", "0")),
                 )
             )
             (root / "network.py").write_text(f'VALUES = """{values}"""\n', encoding="utf-8")

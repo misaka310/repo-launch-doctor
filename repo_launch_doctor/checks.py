@@ -168,6 +168,7 @@ IPV4_RE = re.compile(
     r"(?<![\w.-])(?P<a>\d{1,3})\.(?P<b>\d{1,3})\.(?P<c>\d{1,3})\.(?P<d>\d{1,3})"
     r"(?![\w.-])"
 )
+VERSION_CONTEXT_RE = re.compile(r"(?i)(?:version|release|assembly|build)\D{0,8}$")
 MAX_REPORTED_LINE_NUMBERS = 5
 MARKDOWN_HEADING_RE = re.compile(r"^ {0,3}#{1,6}[ \t]+(?P<title>.+?)\s*#*\s*$")
 
@@ -886,7 +887,7 @@ def _local_paths_in_line(line: str) -> list[str]:
     return candidates
 
 
-def _classify_ipv4(octets: tuple[int, int, int, int]) -> str | None:
+def _classify_ipv4(octets: tuple[int, ...]) -> str | None:
     """Return 'private', 'public', or None for addresses that are not host-specific."""
     first, second, third, _fourth = octets
     if any(octet > 255 for octet in octets):
@@ -920,7 +921,12 @@ def _ip_categories_in_line(line: str) -> list[str]:
         parts = [match.group(name) for name in ("a", "b", "c", "d")]
         if any(len(part) > 1 and part.startswith("0") for part in parts):
             continue
-        category = _classify_ipv4(tuple(int(part) for part in parts))
+        octets = tuple(int(part) for part in parts)
+        if octets[1:] == (0, 0, 0):
+            continue  # a bare network address such as 10.0.0.0, not a host
+        if VERSION_CONTEXT_RE.search(line[max(0, match.start() - 24) : match.start()]):
+            continue
+        category = _classify_ipv4(octets)
         if category is not None:
             categories.append(category)
     return categories
