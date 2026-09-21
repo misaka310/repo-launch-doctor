@@ -3,6 +3,9 @@
 ## Unreleased
 
 - Detect tracked machine-specific shared-Skill paths and internal `docs/superpowers/` agent plans as HIGH repository-boundary findings.
+- Add `hardcoded-local-path` for machine-specific absolute paths (`C:\`, `/home/`, `/Users/`, `/root/`, `/media/`, `/mnt/<drive>/`, `/cygdrive/<drive>/`), excluding documentation placeholders, variable expansions, and URL paths.
+- Add `hardcoded-ip-address` for environment-specific IPv4 literals, with LOW for private ranges and MEDIUM for routable addresses, excluding loopback, bind-all, netmask, link-local, multicast, documentation, and benchmark addresses as well as version numbers.
+- Skip Git-ignored untracked files and test/fixture/example/benchmark/audit material in both new checks, and report only the file, line numbers, and path root or address class instead of the detected values.
 - Make `HIGH` the default `scan --fail-on` threshold so a displayed `FAIL` does not silently return success in the default CLI path.
 - Label verdicts and scores as static readiness results instead of implying runtime or security assurance.
 - Add machine-readable `assurance_level` and per-area `coverage` metadata, including explicit `not_checked` states for runtime, dependencies, GitHub settings, Git history, and binary contents.

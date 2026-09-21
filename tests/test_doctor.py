@@ -346,6 +346,167 @@ class RepoLaunchDoctorTests(unittest.TestCase):
             self.assertNotIn(".env.local", secret_paths)
             self.assertIn(".env.production", secret_paths)
 
+    def test_hardcoded_local_paths_are_reported_without_copying_the_path(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_healthy_repository(root)
+            windows_path = "C:" + chr(92) + "Users" + chr(92) + "operator" + chr(92) + "dev"
+            posix_path = "/home" + "/operator/dev/app"
+            (root / "settings.py").write_text(
+                f'WORKSPACE = "{windows_path}"\nFALLBACK = "{posix_path}"\n',
+                encoding="utf-8",
+            )
+
+            report = scan_repository(root)
+
+            findings = [
+                finding
+                for finding in report.findings
+                if finding.check_id == "hardcoded-local-path"
+            ]
+            self.assertEqual({"settings.py"}, {finding.path for finding in findings})
+            self.assertEqual({"MEDIUM"}, {finding.severity for finding in findings})
+            self.assertEqual(2, len(findings), findings)
+            evidence = " ".join(finding.evidence for finding in findings)
+            self.assertNotIn("operator", evidence)
+            self.assertIn("'C:" + chr(92) + "' appear at line 1", evidence)
+            self.assertIn("'/home/' appear at line 2", evidence)
+
+    def test_placeholder_and_url_paths_are_not_reported_as_local_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_healthy_repository(root)
+            placeholders = "\n".join(
+                (
+                    "C:" + chr(92) + "path" + chr(92) + "to" + chr(92) + "target-repo",
+                    "/home" + "/<user>/app",
+                    "/Users" + "/you/dev",
+                    "%USERPROFILE%" + chr(92) + "dev",
+                    "https://api.example.invalid" + "/home" + "/profile/settings",
+                    "/opt" + "/home" + "/service/bin",
+                )
+            )
+            (root / "USAGE.md").write_text(f"# Usage\n\n```\n{placeholders}\n```\n", encoding="utf-8")
+
+            report = scan_repository(root)
+
+            self.assertFalse(
+                [
+                    finding
+                    for finding in report.findings
+                    if finding.check_id == "hardcoded-local-path"
+                ],
+                report.findings,
+            )
+
+    def test_git_ignored_files_are_not_checked_for_hardcoded_values(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_healthy_repository(root)
+            (root / ".gitignore").write_text("local-notes.md\n", encoding="utf-8")
+            (root / "local-notes.md").write_text(
+                "# Notes\n\n"
+                + "C:" + chr(92) + "Users" + chr(92) + "operator" + chr(92) + "dev\n"
+                + ".".join(("192", "168", "10", "20"))
+                + "\n",
+                encoding="utf-8",
+            )
+            self._git(root, "init")
+            self._git(root, "add", ".")
+
+            report = scan_repository(root)
+
+            self.assertFalse(
+                [
+                    finding
+                    for finding in report.findings
+                    if finding.check_id in {"hardcoded-local-path", "hardcoded-ip-address"}
+                ],
+                report.findings,
+            )
+
+    def test_test_material_is_not_checked_for_hardcoded_values(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_healthy_repository(root)
+            (root / "tests").mkdir()
+            (root / "tests" / "test_paths.py").write_text(
+                "SAMPLE = "
+                + repr("C:" + chr(92) + "Users" + chr(92) + "operator" + chr(92) + "dev")
+                + "\nHOST = "
+                + repr(".".join(("192", "168", "10", "20")))
+                + "\n",
+                encoding="utf-8",
+            )
+
+            report = scan_repository(root)
+
+            self.assertFalse(
+                [
+                    finding
+                    for finding in report.findings
+                    if finding.check_id in {"hardcoded-local-path", "hardcoded-ip-address"}
+                ],
+                report.findings,
+            )
+
+    def test_private_and_routable_ip_literals_are_reported_by_severity(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_healthy_repository(root)
+            private_address = ".".join(("192", "168", "10", "20"))
+            routable_address = ".".join(("198", "76", "54", "32"))
+            (root / "client.py").write_text(
+                f'LAN_HOST = "{private_address}"\nREMOTE_HOST = "{routable_address}"\n',
+                encoding="utf-8",
+            )
+
+            report = scan_repository(root)
+
+            findings = {
+                finding.severity: finding
+                for finding in report.findings
+                if finding.check_id == "hardcoded-ip-address"
+            }
+            self.assertEqual({"LOW", "MEDIUM"}, set(findings))
+            self.assertEqual("client.py", findings["LOW"].path)
+            self.assertIn("line 1", findings["LOW"].evidence)
+            self.assertIn("line 2", findings["MEDIUM"].evidence)
+            for finding in findings.values():
+                self.assertNotIn(private_address, finding.evidence)
+                self.assertNotIn(routable_address, finding.evidence)
+
+    def test_loopback_documentation_and_version_numbers_are_not_ip_findings(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_healthy_repository(root)
+            values = "\n".join(
+                (
+                    ".".join(("127", "0", "0", "1")),
+                    ".".join(("0", "0", "0", "0")),
+                    ".".join(("255", "255", "255", "0")),
+                    ".".join(("169", "254", "169", "254")),
+                    ".".join(("203", "0", "113", "9")),
+                    "v" + ".".join(("1", "2", "3", "4")),
+                    ".".join(("1", "2", "3", "4")) + "-beta",
+                    "<AssemblyVersion>" + ".".join(("1", "0", "0", "0")) + "</AssemblyVersion>",
+                    "<Version>" + ".".join(("2", "3", "4", "5")) + "</Version>",
+                    ".".join(("10", "0", "0", "0")),
+                )
+            )
+            (root / "network.py").write_text(f'VALUES = """{values}"""\n', encoding="utf-8")
+
+            report = scan_repository(root)
+
+            self.assertFalse(
+                [
+                    finding
+                    for finding in report.findings
+                    if finding.check_id == "hardcoded-ip-address"
+                ],
+                report.findings,
+            )
+
     def test_tracked_idea_and_ds_store_are_generated_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

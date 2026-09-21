@@ -9,19 +9,12 @@ from pathlib import Path
 
 from .checks import run_checks
 from .config import DoctorConfig, load_config
+from .constants import FIXTURE_TEXT_PREFIXES
 from .inventory import Inventory, collect_inventory, path_matches
 from .models import Finding, ScanReport
 from .reporters import write_reports
 
 
-_WORKSPACE_DEPENDENCY_EXCLUDED_PREFIXES = (
-    "audits/",
-    "benchmarks/",
-    "examples/",
-    "fixtures/",
-    "test/",
-    "tests/",
-)
 _SHARED_SKILL_PATH_PATTERNS = (
     re.compile(
         r"\b[A-Za-z]:[\\/][^\r\n\"'`]*?[\\/]\.agents[\\/]skills(?:[\\/]|$)",
@@ -246,7 +239,7 @@ def _check_repository_boundaries(inventory: Inventory) -> list[Finding]:
             )
             continue
 
-        if lowered.startswith(_WORKSPACE_DEPENDENCY_EXCLUDED_PREFIXES):
+        if lowered.startswith(FIXTURE_TEXT_PREFIXES):
             continue
         text = _read_optional_text(inventory, normalized)
         if not text:
