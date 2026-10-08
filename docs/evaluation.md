@@ -1,6 +1,36 @@
 # 評価・研究資料
 
-この文書は、Repo Launch Doctorの利用手順ではなく、検査規則の評価方法、公開監査、回帰ベンチマーク、結果の解釈をまとめます。通常の導入と操作は[README](../README.md)を参照してください。
+この文書は、Repo Launch Doctorの検査規則の評価方法と、公開リポジトリでの運用ルールの正本をまとめます。通常の導入と操作は[README](../README.md)を参照してください。
+
+## 公開リポジトリ運用の正本
+
+公開リポジトリでは、Repo Launch Doctor・OpenSSF Scorecard・OpenSSF Best Practicesを同じ目的の重複ツールとして扱わず、次の役割に分けます。
+
+| タイミング | 実行するもの | 目的 | 扱い |
+| --- | --- | --- | --- |
+| ローカル `pre-push` | Repo Launch Doctor | 公開前の現在ツリー、送信対象履歴、秘密情報候補、ローカル固有情報、不要成果物、README/リンクなどの事故防止 | push境界。HIGH/BLOCKERや検査未完了は止める |
+| Pull Request | Repo Launch Doctor | PRの現在状態と `base..head` の履歴を再検査 | `public-readiness` CI |
+| Pull Request | OpenSSF Scorecard CLI | PR head SHAに対するOSSセキュリティ姿勢を可視化 | `scorecard-pr` CI。低スコア自体では失敗させず、スキャン実行失敗はCI失敗 |
+| default branchへのpush | OpenSSF Scorecard Action | 正式なScorecard結果を公開し、SARIFをCode Scanningへ送る | 自動実行 |
+| 週次 | OpenSSF Scorecard Action | GitHub設定や依存関係など、コード変更がなくても変わる項目を再評価 | 自動実行 |
+| 定期・公開品質見直し | OpenSSF Best Practices | OSSプロセス、文書、貢献・脆弱性報告・品質管理の成熟度を確認 | 毎PRでは走らせない。自己認証を行う場合は根拠を確認して登録する |
+
+### 役割分担
+
+Repo Launch Doctorはローカルの公開事故防止を担当します。OpenSSF Scorecardだけでは、公開前の作業ツリーに残った絶対パス、環境固有IP、不要生成物、READMEと起動入口の不整合などを同じ粒度で止められないため、ローカル `pre-push` から外しません。
+
+OpenSSF ScorecardはGitHub上のBranch Protection、Code Review、Dependency Update、Pinned Dependencies、SAST、Security Policy、Token Permissions、Vulnerabilitiesなど、Repo Launch Doctorとは異なるOSSセキュリティ姿勢を担当します。PR時は対象head SHAをCLIで評価し、default branchでは公式`ossf/scorecard-action`を使って結果を公開します。
+
+OpenSSF Best PracticesはCIスキャナではありません。毎PRで機械的に走らせるものではなく、公開プロジェクトの運用・文書・品質・セキュリティ方針のチェックリスト兼自己認証として扱います。
+
+### 管理方針
+
+- この文書を運用ルールの正本とし、各公開リポジトリへ長い説明を複製しない。
+- 各公開リポジトリには、Repo Launch Doctor用workflowとOpenSSF Scorecard用workflowだけを配置し、workflowコメントからこの正本を参照する。
+- Repo Launch Doctorのローカル `pre-push` は中央管理された共有フックから実行する。ScorecardはWindowsローカルのpush境界には追加しない。
+- ScorecardのPR評価は結果を可視化するためのもので、総合点や個別点に一律の合格閾値を置かない。改善項目はリポジトリごとに判断する。
+- Scorecard本番workflowではActionをcommit SHAで固定し、標準GitHub-hosted runnerを使う。
+- 公開リポジトリでは標準GitHub-hosted runnerのActions分数課金を前提に最適化しないが、不要な重複実行は避ける。
 
 ## 評価の目的
 
