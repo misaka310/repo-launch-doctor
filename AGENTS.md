@@ -3,7 +3,16 @@
 ## 仕様の正本
 
 - 仕様の正本: `README.md`
+- 公開リポジトリ向けガード運用の正本: `docs/evaluation.md` の「公開リポジトリ運用の正本」
 - 実装前に意図する仕様を正本へ反映し、仕様変更時は同じ変更で正本と検証を更新する。
+
+## Public repository guard
+
+- ローカル `pre-push` はRepo Launch Doctorを維持し、公開事故の境界チェックとして使う。
+- Pull RequestではRepo Launch DoctorとOpenSSF Scorecardを実行する。
+- default branchへのpushと週次では公式OpenSSF Scorecard Actionを実行する。
+- OpenSSF Best Practicesは毎PRのCIではなく、定期的な公開品質・OSS運用の見直しに使う。
+- 共通workflowの役割分担を変更する場合は、先に`docs/evaluation.md`を更新し、各公開リポジトリの管理workflowと矛盾させない。
 
 ## Repository boundaries
 
