@@ -1,25 +1,17 @@
-# セキュリティポリシー
+# Security Policy
 
-## サポート対象
+## Supported version
 
-既定ブランチの最新版をサポートします。
+Security fixes are applied to the current default branch and the latest published release, if releases are used.
 
-## 脆弱性の報告
+## Reporting a vulnerability
 
-リポジトリでGitHub Private Vulnerability Reportingが有効な場合は、公開Issueではなくそちらを使用してください。実際の認証情報、秘密鍵、セッションCookie、個人情報、非公開リポジトリの内容を公開Issueへ載せないでください。
+Do not disclose a suspected vulnerability, exploit details, credentials, tokens, private keys, or personal data in a public issue. Please use GitHub's [private vulnerability reporting form](https://github.com/misaka310/repo-launch-doctor/security/advisories/new).
 
-報告には次を含めてください。
+Include the affected version or commit, reproduction steps, expected impact, and the smallest proof of concept needed to validate the issue.
 
-- 影響するバージョンまたはcommit
-- OSとPythonのバージョン
-- 合成データだけを使った最小再現
-- 期待した結果と実際の結果
-- 本来伏せるべき内容がレポートへ出たか
+## Response and disclosure timeline
 
-## 安全性の境界
+A private report will normally be acknowledged within 7 days. After validation, remediation is prioritized by severity. Coordinated public disclosure should wait until a fix is available or an agreed disclosure date is reached. If a longer investigation is required, status updates will be provided through the private advisory.
 
-Repo Launch Doctorは、上限を設けた静的・読み取り専用の検査を行います。対象リポジトリに書かれたコマンドは実行しません。Git追跡状態とignore状態の確認に `git ls-files` と `git check-ignore` を使用する場合があります。
-
-秘密情報らしいファイルの内容は生成レポートへコピーしません。Git履歴は検査せず、専用のシークレットスキャナーやセキュリティ監査の代替ではありません。
-
-`INCOMPLETE` のレポートを「公開して安全」という根拠に使用しないでください。
+Security reports made in good faith for defensive purposes are welcome.
