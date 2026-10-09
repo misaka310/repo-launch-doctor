@@ -23,3 +23,9 @@ Repo Launch Doctorは、上限を設けた静的・読み取り専用の検査�
 秘密情報らしいファイルの内容は生成レポートへコピーしません。Git履歴は検査せず、専用のシークレットスキャナーやセキュリティ監査の代替ではありません。
 
 `INCOMPLETE` のレポートを「公開して安全」という根拠に使用しないでください。
+
+## Reporting a vulnerability
+
+Please report suspected vulnerabilities privately through [GitHub Security Advisories](https://github.com/misaka310/repo-launch-doctor/security/advisories/new). Do not open a public issue for an unpatched vulnerability.
+
+Include reproduction steps, affected versions or commits, impact, and any known workaround. We will acknowledge a report as soon as practical, investigate it, and coordinate remediation and disclosure. Our target is to provide an initial status update within 7 days and, when feasible, resolve or publish a mitigation within 90 days. If a fix needs longer, we will communicate the reason and a revised timeline through the private advisory.
