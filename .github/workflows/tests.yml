@@ -37,7 +37,7 @@ jobs:
 
       - name: Install package and check CLI
         run: |
-          python -m pip install .
+          python -m pip install --no-deps --no-build-isolation .
           repo-launch-doctor --version
 
       - name: Self scan
@@ -79,7 +79,7 @@ jobs:
 
       - name: Install package and check CLI
         run: |
-          python -m pip install .
+          python -m pip install --no-deps --no-build-isolation .
           repo-launch-doctor --version
 
       - name: Self scan
