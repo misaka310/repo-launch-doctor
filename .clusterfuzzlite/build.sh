@@ -1,10 +1,8 @@
 #!/bin/bash -eu
 
-pip3 install .
-
 for fuzzer in fuzzing/*_fuzzer.py; do
   name=$(basename -s .py "$fuzzer")
-  pyinstaller --distpath "$OUT" --onefile --name "${name}.pkg" "$fuzzer"
+  pyinstaller --paths "$SRC/repo-launch-doctor" --distpath "$OUT" --onefile --name "${name}.pkg" "$fuzzer"
   cat > "$OUT/$name" <<EOF
 #!/bin/sh
 # LLVMFuzzerTestOneInput for ClusterFuzzLite fuzzer detection.
