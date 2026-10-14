@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import re
 import subprocess
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -86,10 +85,10 @@ def scan(repo_dir: Path, repo_name: str) -> tuple[int, int]:
                 privacy_count += 1
                 annotation("warning", repo_name, pattern, current_commit, current_path)
 
-    stderr = proc.stderr.read() if proc.stderr is not None else ""
+    if proc.stderr is not None:
+        proc.stderr.read()
     return_code = proc.wait()
     if return_code:
-        print(stderr, file=sys.stderr)
         raise RuntimeError(f"git log failed for {repo_name}: exit {return_code}")
     print(f"AUDIT_SUMMARY repo={repo_name} secret={secret_count} privacy={privacy_count}")
     return secret_count, privacy_count
