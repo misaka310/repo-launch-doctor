@@ -27,10 +27,19 @@ SECRET_PATTERNS = [
     Pattern("secret", "discord-webhook", re.compile(r"https://discord(?:app)?\.com/api/webhooks/[0-9]{10,}/[A-Za-z0-9._-]{20,}")),
 ]
 
+IPV4_OCTET = r"(?:25[0-5]|2[0-4]\d|1?\d?\d)"
+PRIVATE_IPV4 = re.compile(
+    rf"\b(?:"
+    rf"10(?:\.{IPV4_OCTET}){{3}}|"
+    rf"172\.(?:1[6-9]|2\d|3[01])(?:\.{IPV4_OCTET}){{2}}|"
+    rf"192\.168(?:\.{IPV4_OCTET}){{2}}"
+    rf")\b"
+)
+
 PRIVACY_PATTERNS = [
     Pattern("privacy", "windows-user-path", re.compile(r"\b[A-Za-z]:[\\/]Users[\\/][^\\/\s\"'<>]+", re.IGNORECASE)),
     Pattern("privacy", "local-dev-path", re.compile(r"\b[A-Za-z]:[\\/]00_dev[\\/]", re.IGNORECASE)),
-    Pattern("privacy", "private-ip", re.compile(r"\b(?:192\.168|10\.|172\.(?:1[6-9]|2[0-9]|3[01])\.)\d{1,3}(?:\.\d{1,3}){1,2}\b")),
+    Pattern("privacy", "private-ip", PRIVATE_IPV4),
     Pattern("privacy", "machine-hostname", re.compile(r"\bDESK2\b", re.IGNORECASE)),
     Pattern("privacy", "specific-gpu-model", re.compile(r"\b(?:RTX\s*3060|RTX\s*5060\s*Ti)\b", re.IGNORECASE)),
     Pattern("privacy", "portfolio-fund-name", re.compile(r"(?:ｅＭＡＸＩＳ|eMAXIS\s+Slim|ニッセイＳＯＸ|ＳＢＩ日本高配当)", re.IGNORECASE)),
