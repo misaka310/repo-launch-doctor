@@ -1,0 +1,97 @@
+name: Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pr-check:
+    permissions:
+      contents: read
+    name: PR check (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        id: setup-python
+        with:
+          python-version: "3.12"
+
+      - name: Unit and end-to-end tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Compile check
+        run: python -m compileall repo_launch_doctor tests
+
+      - name: Check CLI from pinned repository source
+        run: python -m repo_launch_doctor --version
+
+      - name: Self scan
+        run: python -m repo_launch_doctor scan . --output reports/self --fail-on high
+
+      - name: Windows launcher from another directory
+        if: runner.os == 'Windows'
+        shell: cmd
+        env:
+          CI: "1"
+          REPO_LAUNCH_DOCTOR_PYTHON: ${{ steps.setup-python.outputs.python-path }}
+        run: |
+          cd /d %TEMP%
+          call "%GITHUB_WORKSPACE%\run-doctor.bat" "%GITHUB_WORKSPACE%" none
+
+  compatibility:
+    permissions:
+      contents: read
+    name: Compatibility (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    if: github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11", "3.12", "3.13"]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        id: setup-python
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Unit and end-to-end tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Compile check
+        run: python -m compileall repo_launch_doctor tests
+
+      - name: Check CLI from pinned repository source
+        run: python -m repo_launch_doctor --version
+
+      - name: Self scan
+        run: python -m repo_launch_doctor scan . --output reports/self --fail-on high
+
+      - name: Windows launcher from another directory
+        if: runner.os == 'Windows'
+        shell: cmd
+        env:
+          CI: "1"
+          REPO_LAUNCH_DOCTOR_PYTHON: ${{ steps.setup-python.outputs.python-path }}
+        run: |
+          cd /d %TEMP%
+          call "%GITHUB_WORKSPACE%\run-doctor.bat" "%GITHUB_WORKSPACE%" none

@@ -1,0 +1,20 @@
+{
+  "target_id": "jrock474--back-end-project--19a57b0de1a1",
+  "repository": "https://github.com/Jrock474/Back-End-Project.git",
+  "commit": "19a57b0de1a1bf1c1898b6a986e27e0fa6fe19fe",
+  "project_type": "Node.js backend (after start script)",
+  "labels": {
+    "missing-start-entrypoint": false
+  },
+  "fetch_succeeded": true,
+  "checkout_succeeded": true,
+  "scan_complete": true,
+  "findings": [
+    "secret-risk-file",
+    "missing-readme",
+    "generated-artifact-present",
+    "missing-favicon"
+  ],
+  "execution_error": null,
+  "verdict": "FAIL"
+}

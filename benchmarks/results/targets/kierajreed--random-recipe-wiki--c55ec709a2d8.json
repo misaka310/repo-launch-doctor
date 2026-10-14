@@ -1,0 +1,26 @@
+{
+  "target_id": "kierajreed--random-recipe-wiki--c55ec709a2d8",
+  "repository": "https://github.com/kierajreed/random-recipe-wiki.git",
+  "commit": "c55ec709a2d8c62e38f6d892b9148387c0caf050",
+  "project_type": "Node.js application (before start script)",
+  "labels": {
+    "missing-start-entrypoint": true,
+    "readme-missing-verification": true
+  },
+  "fetch_succeeded": true,
+  "checkout_succeeded": true,
+  "scan_complete": true,
+  "findings": [
+    "missing-start-entrypoint",
+    "readme-missing-setup",
+    "readme-missing-usage",
+    "readme-missing-verification",
+    "missing-config-example",
+    "missing-favicon",
+    "missing-security-doc",
+    "readme-missing-limitations",
+    "readme-missing-requirements"
+  ],
+  "execution_error": null,
+  "verdict": "FAIL"
+}

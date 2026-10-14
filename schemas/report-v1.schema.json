@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/misaka310/repo-launch-doctor/schemas/report-v1.schema.json",
+  "title": "Repo Launch Doctor report v1",
+  "type": "object",
+  "required": ["schema_version", "repository", "generated_at", "files_scanned", "paths_discovered", "verdict", "score", "counts", "metadata", "findings"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "repository": {"type": "string", "minLength": 1},
+    "generated_at": {"type": "string"},
+    "files_scanned": {"type": "integer", "minimum": 0},
+    "paths_discovered": {"type": "integer", "minimum": 0},
+    "verdict": {"enum": ["PASS", "PASS_WITH_NOTES", "FAIL", "INCOMPLETE"]},
+    "score": {"type": ["integer", "null"], "minimum": 0, "maximum": 100},
+    "counts": {"type": "object", "additionalProperties": false, "required": ["BLOCKER", "HIGH", "MEDIUM", "LOW", "INFO"], "properties": {"BLOCKER":{"type":"integer","minimum":0},"HIGH":{"type":"integer","minimum":0},"MEDIUM":{"type":"integer","minimum":0},"LOW":{"type":"integer","minimum":0},"INFO":{"type":"integer","minimum":0}}},
+    "metadata": {"type": "object", "required": ["scan_complete"], "properties": {"scan_complete": {"type": "boolean"}}},
+    "findings": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["check_id", "severity", "title", "path", "evidence", "recommendation"], "properties": {"check_id": {"type": "string"}, "severity": {"enum": ["BLOCKER", "HIGH", "MEDIUM", "LOW", "INFO"]}, "title": {"type": "string"}, "path": {"type": "string"}, "evidence": {"type": "string"}, "recommendation": {"type": "string"}}}}
+  },
+  "allOf": [{"if": {"properties": {"verdict": {"const": "INCOMPLETE"}}}, "then": {"properties": {"score": {"type": "null"}, "metadata": {"properties": {"scan_complete": {"const": false}}}}}, "else": {"properties": {"score": {"type": "integer", "minimum": 0, "maximum": 100}, "metadata": {"properties": {"scan_complete": {"const": true}}}}}}]
+}

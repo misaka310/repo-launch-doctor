@@ -1,0 +1,535 @@
+{
+  "generated_at": "2026-07-14T17:16:41.179823+00:00",
+  "tool_version": "0.3.0",
+  "targets": 20,
+  "fetch_succeeded": 20,
+  "fetch_failed": 0,
+  "checkout_succeeded": 20,
+  "checkout_failed": 0,
+  "scan_completed": 20,
+  "scan_incomplete": 0,
+  "eligible_for_metrics": 20,
+  "execution_errors": 0,
+  "execution_error_details": [],
+  "results": [
+    {
+      "target_id": "ckala62rus--go-architecture-v2--2fc3164e0d8c",
+      "repository": "https://github.com/Ckala62rus/go-architecture-v2.git",
+      "commit": "2fc3164e0d8cce622d5f9dc30141df61e1de6c61",
+      "project_type": "Go web application (before launcher)",
+      "labels": {
+        "missing-start-entrypoint": true,
+        "readme-missing-verification": true
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "missing-start-entrypoint",
+        "generated-artifact-present",
+        "missing-license",
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "ckala62rus--go-architecture-v2--df7c7b4f0aec",
+      "repository": "https://github.com/Ckala62rus/go-architecture-v2.git",
+      "commit": "df7c7b4f0aece8aaa4a2829f2a905419d023663c",
+      "project_type": "Go web application (after launcher)",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "generated-artifact-present",
+        "missing-license",
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "PASS_WITH_NOTES"
+    },
+    {
+      "target_id": "cbogdan97--automation_test--dab37fe8a924",
+      "repository": "https://github.com/cbogdan97/automation_test.git",
+      "commit": "dab37fe8a9243a3436ba14381329db34e147aa26",
+      "project_type": "Cypress application (before launcher)",
+      "labels": {
+        "missing-start-entrypoint": true
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "missing-readme",
+        "missing-start-entrypoint",
+        "missing-license",
+        "missing-security-doc"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "cbogdan97--automation_test--4f89826f29b3",
+      "repository": "https://github.com/cbogdan97/automation_test.git",
+      "commit": "4f89826f29b32764df58255cb77f6f70cf17ca62",
+      "project_type": "Cypress application (after launcher)",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "missing-readme",
+        "missing-license",
+        "missing-security-doc"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "fredrikbwinlas--tictactoeyellowbelt--c343ecc4bf00",
+      "repository": "https://github.com/FredrikBWinLas/TicTacToeYellowBelt.git",
+      "commit": "c343ecc4bf0055e02941f025d64eeefcdf17563d",
+      "project_type": ".NET console application (before launcher)",
+      "labels": {
+        "missing-start-entrypoint": true,
+        "readme-missing-verification": true
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "missing-start-entrypoint",
+        "missing-license",
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "fredrikbwinlas--tictactoeyellowbelt--8b895bdfe1a2",
+      "repository": "https://github.com/FredrikBWinLas/TicTacToeYellowBelt.git",
+      "commit": "8b895bdfe1a2e9c75818dfa3ca7b8a293df3a24f",
+      "project_type": ".NET console application (after launcher)",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "missing-license",
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "PASS_WITH_NOTES"
+    },
+    {
+      "target_id": "jrock474--back-end-project--1c458ffb806f",
+      "repository": "https://github.com/Jrock474/Back-End-Project.git",
+      "commit": "1c458ffb806ffd576c35f9f5b0c03f58e4da203d",
+      "project_type": "Node.js backend (before start script)",
+      "labels": {
+        "missing-start-entrypoint": true
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "secret-risk-file",
+        "missing-readme",
+        "missing-start-entrypoint",
+        "generated-artifact-present",
+        "missing-favicon"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "jrock474--back-end-project--19a57b0de1a1",
+      "repository": "https://github.com/Jrock474/Back-End-Project.git",
+      "commit": "19a57b0de1a1bf1c1898b6a986e27e0fa6fe19fe",
+      "project_type": "Node.js backend (after start script)",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "secret-risk-file",
+        "missing-readme",
+        "generated-artifact-present",
+        "missing-favicon"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "kierajreed--random-recipe-wiki--c55ec709a2d8",
+      "repository": "https://github.com/kierajreed/random-recipe-wiki.git",
+      "commit": "c55ec709a2d8c62e38f6d892b9148387c0caf050",
+      "project_type": "Node.js application (before start script)",
+      "labels": {
+        "missing-start-entrypoint": true,
+        "readme-missing-verification": true
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "missing-start-entrypoint",
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-config-example",
+        "missing-favicon",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "kierajreed--random-recipe-wiki--a1a64d1eeeaf",
+      "repository": "https://github.com/kierajreed/random-recipe-wiki.git",
+      "commit": "a1a64d1eeeaf93e3a46469d3850bdaaa93b5c5e0",
+      "project_type": "Node.js application (after start script)",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": true
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-config-example",
+        "missing-favicon",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "PASS_WITH_NOTES"
+    },
+    {
+      "target_id": "pallets--click--b67832c2167e",
+      "repository": "https://github.com/pallets/click.git",
+      "commit": "b67832c2167e5b0ff6764a8c04a0a9087e697b5a",
+      "project_type": "Python CLI",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "PASS_WITH_NOTES"
+    },
+    {
+      "target_id": "psf--black--51abf53080b0",
+      "repository": "https://github.com/psf/black.git",
+      "commit": "51abf53080b09eab12143727641ff1e2cd39d8c9",
+      "project_type": "Python CLI",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "broken-markdown-link",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "fazilet1820--laraveluppgift--1ea9b1fd97bd",
+      "repository": "https://github.com/Fazilet1820/LaravelUppgift.git",
+      "commit": "1ea9b1fd97bdd1b8da7d3d729a000b0816f00eec",
+      "project_type": "Laravel web application",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "generated-artifact-present",
+        "missing-health-check",
+        "missing-license",
+        "readme-missing-usage",
+        "missing-favicon",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "PASS_WITH_NOTES"
+    },
+    {
+      "target_id": "gabrielvelasco--lead-management--ca4899e5458a",
+      "repository": "https://github.com/GabrielVelasco/Lead-Management.git",
+      "commit": "ca4899e5458a1f4db062f60abf85b2f89b7ef596",
+      "project_type": "FastAPI web application",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "broken-markdown-link",
+        "generated-artifact-present",
+        "generated-artifact-present",
+        "generated-artifact-present",
+        "generated-artifact-present",
+        "generated-artifact-present",
+        "generated-artifact-present",
+        "generated-artifact-present",
+        "generated-artifact-present",
+        "generated-artifact-present",
+        "missing-license",
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "missing-config-example",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "pytest-dev--pytest--67a174fcee35",
+      "repository": "https://github.com/pytest-dev/pytest.git",
+      "commit": "67a174fcee355334c53588be2eeba8df702477e9",
+      "project_type": "Python CLI/library",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "PASS_WITH_NOTES"
+    },
+    {
+      "target_id": "gothinkster--react-redux-realworld-example-app--ee72eba40563",
+      "repository": "https://github.com/gothinkster/react-redux-realworld-example-app.git",
+      "commit": "ee72eba4056392c95a27bc48d385d3f54ba38a18",
+      "project_type": "Web application",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "missing-health-check",
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-config-example",
+        "missing-favicon",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "PASS_WITH_NOTES"
+    },
+    {
+      "target_id": "sindresorhus--open-cli--199a2033ae41",
+      "repository": "https://github.com/sindresorhus/open-cli.git",
+      "commit": "199a2033ae41c65928b8b8bfd7936082a135aa8c",
+      "project_type": "Node.js CLI",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "secret-risk-file",
+        "readme-missing-verification",
+        "missing-config-example",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "FAIL"
+    },
+    {
+      "target_id": "kettanaito--naming-cheatsheet--7b90cd7b2d3c",
+      "repository": "https://github.com/kettanaito/naming-cheatsheet.git",
+      "commit": "7b90cd7b2d3ccb104a4443d5e7e152b8fd400533",
+      "project_type": "Documentation-only",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "PASS_WITH_NOTES"
+    },
+    {
+      "target_id": "cu-ecen-aeld--assignments-3-and-later-jqiaobln--002d42426770",
+      "repository": "https://github.com/cu-ecen-aeld/assignments-3-and-later-jqiaobln.git",
+      "commit": "002d4242677098a65c7352d4f39784c103da1649",
+      "project_type": "Embedded Linux assignment repository",
+      "labels": {
+        "missing-start-entrypoint": false,
+        "readme-missing-verification": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "missing-config-example",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "PASS_WITH_NOTES"
+    },
+    {
+      "target_id": "pallets--itsdangerous--672971d66a2e",
+      "repository": "https://github.com/pallets/itsdangerous.git",
+      "commit": "672971d66a2ef9f85151e53283113f33d642dabd",
+      "project_type": "Python library",
+      "labels": {
+        "missing-start-entrypoint": false
+      },
+      "fetch_succeeded": true,
+      "checkout_succeeded": true,
+      "scan_complete": true,
+      "findings": [
+        "readme-missing-setup",
+        "readme-missing-usage",
+        "readme-missing-verification",
+        "missing-config-example",
+        "missing-security-doc",
+        "readme-missing-limitations",
+        "readme-missing-requirements"
+      ],
+      "execution_error": null,
+      "verdict": "PASS_WITH_NOTES"
+    }
+  ],
+  "complete_run": true,
+  "partial_result": false,
+  "metrics": {
+    "missing-start-entrypoint": {
+      "positive_labels": 5,
+      "negative_labels": 15,
+      "TP": 5,
+      "FP": 0,
+      "FN": 0,
+      "TN": 15,
+      "precision": 1.0,
+      "recall": 1.0,
+      "coverage_status": "sufficient"
+    },
+    "readme-missing-verification": {
+      "positive_labels": 6,
+      "negative_labels": 4,
+      "TP": 6,
+      "FP": 0,
+      "FN": 0,
+      "TN": 4,
+      "precision": 1.0,
+      "recall": 1.0,
+      "coverage_status": "sufficient"
+    }
+  },
+  "false_positives": [],
+  "false_negatives": []
+}

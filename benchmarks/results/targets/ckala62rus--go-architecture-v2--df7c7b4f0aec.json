@@ -1,0 +1,25 @@
+{
+  "target_id": "ckala62rus--go-architecture-v2--df7c7b4f0aec",
+  "repository": "https://github.com/Ckala62rus/go-architecture-v2.git",
+  "commit": "df7c7b4f0aece8aaa4a2829f2a905419d023663c",
+  "project_type": "Go web application (after launcher)",
+  "labels": {
+    "missing-start-entrypoint": false,
+    "readme-missing-verification": true
+  },
+  "fetch_succeeded": true,
+  "checkout_succeeded": true,
+  "scan_complete": true,
+  "findings": [
+    "generated-artifact-present",
+    "missing-license",
+    "readme-missing-setup",
+    "readme-missing-usage",
+    "readme-missing-verification",
+    "missing-security-doc",
+    "readme-missing-limitations",
+    "readme-missing-requirements"
+  ],
+  "execution_error": null,
+  "verdict": "PASS_WITH_NOTES"
+}

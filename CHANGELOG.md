@@ -1,0 +1,60 @@
+# Changelog
+
+## Unreleased
+
+- Detect tracked machine-specific shared-Skill paths and internal `docs/superpowers/` agent plans as HIGH repository-boundary findings.
+- Add `hardcoded-local-path` for machine-specific absolute paths (`C:\`, `/home/`, `/Users/`, `/root/`, `/media/`, `/mnt/<drive>/`, `/cygdrive/<drive>/`), excluding documentation placeholders, variable expansions, and URL paths.
+- Add `hardcoded-ip-address` for environment-specific IPv4 literals, with LOW for private ranges and MEDIUM for routable addresses, excluding loopback, bind-all, netmask, link-local, multicast, documentation, and benchmark addresses as well as version numbers.
+- Skip Git-ignored untracked files and test/fixture/example/benchmark/audit material in both new checks, and report only the file, line numbers, and path root or address class instead of the detected values.
+- Make `HIGH` the default `scan --fail-on` threshold so a displayed `FAIL` does not silently return success in the default CLI path.
+- Label verdicts and scores as static readiness results instead of implying runtime or security assurance.
+- Add machine-readable `assurance_level` and per-area `coverage` metadata, including explicit `not_checked` states for runtime, dependencies, GitHub settings, Git history, and binary contents.
+- Show the assurance boundary prominently in Markdown and HTML reports.
+
+## 0.4.0
+
+- Add `history-scan` for selected ranges, explicit commit lists, and one-time full-history checks.
+- Detect secret-like values in added text and commit messages without writing detected values to reports.
+- Detect sensitive-looking filenames introduced by historical commits, including files later deleted.
+- Emit redacted JSON and Markdown history reports and count binary patches that were not content-scanned.
+- Support pre-push and pull-request workflows that inspect both the current tree and every outgoing commit.
+
+## 0.3.0
+
+- Parse Python project entry points with `tomllib`, including scripts and GUI scripts.
+- Only suggest Python test commands when pytest or unittest evidence exists.
+- Detect README coverage from Markdown headings rather than incidental prose.
+- Add a fixed-SHA public repository benchmark runner, report schema, and decision records.
+- Make external benchmark runs resumable with validated repository and per-target caches, independent fetch/checkout/scan timeouts, and repository-plus-SHA target IDs that support Before/After commits from the same repository.
+- Publish formal benchmark artifacts only after a complete 20-target run; partial runs remain under `.benchmark-cache` and cannot overwrite public evidence.
+- Replace oversized or incomplete corpus targets with classification-equivalent fixed-SHA repositories and record every replacement and rejected candidate.
+- Add network-free benchmark-runner regression tests covering shallow fetches, cache invalidation, failure accounting, resume/force behavior, and publication boundaries.
+- Recognize Node.js `package.json` `bin` declarations and descriptive root shell scripts such as `runqemu.sh` as entry points, and auto-classify documentation-only repositories so they do not require application launchers.
+- Add five verified public-history Before/After pairs and retain hard negative examples for Node.js CLI, documentation-only, and descriptive shell-launcher layouts.
+- Publish a complete balanced 20-target result with zero execution errors: TP 5 / FP 0 / FN 0 / TN 15 for `missing-start-entrypoint` and TP 6 / FP 0 / FN 0 / TN 4 for `readme-missing-verification`.
+- Add a current-repository audit that fixes the 30 targets before scanning, delays manual labels until all attempts finish, preserves excluded targets, and publishes baseline plus post-fix metrics.
+- Expand entrypoint recognition to Make targets, Docker/Compose declarations, Go `main` packages, browser-extension manifests, documented launch commands, and common package preview/playground scripts.
+- Recognize .NET libraries, Maven aggregators, and explicitly described library/framework/documentation collections so non-app repositories are not required to provide an application launcher.
+- Recognize concrete README verification commands and manual playground/preview procedures without requiring an exact `Testing` heading.
+- Skip additional known binary asset formats during text inspection instead of marking otherwise complete scans as unreadable.
+- Extend the current public-repository audit to instance-level secret-file, generated-artifact, and broken-Markdown-link review while withholding sensitive disclosure details from public artifacts.
+- Reduce secret-file false positives by distinguishing auth-bearing `.npmrc`/`.pypirc` and sensitive non-template `.env.*` assignments from public configuration and deployment templates.
+- Detect tracked IDE/OS metadata, avoid treating source/config directories named `build` as generated output, and ignore Markdown links inside code examples, URI schemes, extensionless site routes, and duplicate source-target pairs.
+
+## 0.2.0
+
+- パス/Git状態の列挙とテキスト内容の読取を分離
+- 追跡済みのbuild、cache、依存ツリー、log、仮想環境を内容を読まず検出
+- 未追跡かつGit ignoreされていない生成物をLOWで表示
+- 上限到達や読取失敗を `INCOMPLETE` とし、スコアを表示しない設計へ変更
+- `.ico` などのバイナリfaviconを内容を読まず確認
+- tests、docs、examples、reportsの値を実行ポート・health endpointから除外
+- 共有用レポートから絶対パスを既定で除外
+- PASS/FAIL/INCOMPLETE、検査範囲、抑制Finding、折り畳みHTMLを追加
+- Windowsランチャーを呼び出し元フォルダに依存しない構成へ変更し、出力を時刻別に分離
+
+## 0.1.0
+
+- 初版
+- README、起動入口、秘密情報候補、生成物、Web公開準備を静的検査
+- JSON / Markdown / HTMLレポートを生成
