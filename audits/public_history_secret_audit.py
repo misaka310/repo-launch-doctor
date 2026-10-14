@@ -90,7 +90,6 @@ def scan(repo_dir: Path, repo_name: str) -> tuple[int, int]:
     return_code = proc.wait()
     if return_code:
         raise RuntimeError(f"git log failed for {repo_name}: exit {return_code}")
-    print(f"AUDIT_SUMMARY repo={repo_name} secret={secret_count} privacy={privacy_count}")
     return secret_count, privacy_count
 
 
@@ -99,8 +98,8 @@ def main() -> int:
     parser.add_argument("--repo-dir", required=True, type=Path)
     parser.add_argument("--repo-name", required=True)
     args = parser.parse_args()
-    secrets, _privacy = scan(args.repo_dir, args.repo_name)
-    return 1 if secrets else 0
+    secret_findings_count, _privacy_count = scan(args.repo_dir, args.repo_name)
+    return 1 if secret_findings_count else 0
 
 
 if __name__ == "__main__":
