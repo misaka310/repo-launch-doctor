@@ -154,7 +154,11 @@ def _detect_secret_types(text: str, *, path: str = "") -> list[tuple[str, str]]:
         value = assignment.group("quoted_value") or assignment.group("plain_value") or ""
         quoted = assignment.group("quoted_value") is not None
         looks_like_detector_constant = key.endswith(("_RE", "_REGEX", "_PATTERN", "_PATTERNS"))
-        looks_like_metadata_name = key.endswith(("_PATH", "_FILE", "_FILENAME", "_NAME", "_ENV", "_VAR"))
+        # Keys such as a secret catalog's `secretId` name a reference to a
+        # credential, not the credential value itself.
+        looks_like_metadata_name = key.endswith(
+            ("_PATH", "_FILE", "_FILENAME", "_NAME", "_ENV", "_VAR", "ID", "IDS")
+        )
         code_suffix = Path(path).suffix.casefold()
         identifier_expression = bool(
             re.fullmatch(

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Stop reporting metadata identifier assignments as `generic-secret-assignment`: keys ending in `ID`/`IDS` (for example a secret catalog's `secretId`) hold a reference to a credential, not the credential value.
 - Detect tracked machine-specific shared-Skill paths and internal `docs/superpowers/` agent plans as HIGH repository-boundary findings.
 - Add `hardcoded-local-path` for machine-specific absolute paths (`C:\`, `/home/`, `/Users/`, `/root/`, `/media/`, `/mnt/<drive>/`, `/cygdrive/<drive>/`), excluding documentation placeholders, variable expansions, and URL paths.
 - Add `hardcoded-ip-address` for environment-specific IPv4 literals, with LOW for private ranges and MEDIUM for routable addresses, excluding loopback, bind-all, netmask, link-local, multicast, documentation, and benchmark addresses as well as version numbers.
