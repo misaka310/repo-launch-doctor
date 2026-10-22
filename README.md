@@ -120,6 +120,8 @@ python -m repo_launch_doctor history-scan . --all-history --output reports/full-
 
 秘密値を追加した後のコミットで削除していても、追加時のコミットを対象に含めれば検出します。
 
+値そのものではなく資格情報への参照を保持するメタデータ（`secretId`のようにキー末尾が`ID`/`IDS`の項目）は、資格情報の代入ではないため検出対象外です。
+
 ## プロジェクト別設定とCI
 
 対象リポ直下の`.repo-launch-doctor.json`で、プロジェクト種別、期待する起動コマンド・ポート・health endpoint、読取除外、上限を設定できます。未知の設定キーやcheck IDはエラーになり、秘密情報・検査未完了・内部エラーの検査は無効化できません。

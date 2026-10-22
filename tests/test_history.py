@@ -137,6 +137,25 @@ class GitHistorySecretScanTests(unittest.TestCase):
             self.assertTrue(any(f.detector == "generic-secret-assignment" for f in report.findings))
             self.assertNotIn(fake_value, json.dumps(report.to_dict()))
 
+    def test_metadata_identifier_assignment_is_not_a_secret_value(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._init_repo(root)
+            base = self._git(root, "rev-parse", "HEAD")
+            key = "secret" + "Id"
+            reference = "8c0fbf3a-b902-42ea-9349-b4e500a0dac6"
+            (root / "catalog.json").write_text(
+                f'{{\n  "name": "GH_TOKEN",\n  "{key}": "{reference}"\n}}\n',
+                encoding="utf-8",
+            )
+            self._git(root, "add", "catalog.json")
+            self._git(root, "commit", "-m", "add secret catalog metadata")
+            head = self._git(root, "rev-parse", "HEAD")
+
+            report = scan_git_history(root, revision_range=f"{base}..{head}")
+
+            self.assertEqual(report.findings, [])
+
     def test_safe_npmrc_history_is_not_blocked(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
