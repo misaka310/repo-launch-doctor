@@ -34,7 +34,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: misaka310/repo-launch-doctor
-          ref: a1607d8b2e9c5bf8ca1c25482cf21787af9e7487
+          ref: 05428fe8fd6dffade0ebdfd087e99437c85a366f
           path: doctor
 
       - name: Scan current repository state
